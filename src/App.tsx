@@ -2,18 +2,14 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { HomePage } from './pages/HomePage';
+import { PersonasPage } from './pages/PersonasPage';
+import { VacunasPage } from './pages/VacunasPage';
+import { MedicamentosPage } from './pages/MedicamentosPage';
+import { RazasPage } from './pages/RazasPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 /**
  * App - Componente Raíz de Enrutamiento (SPA - Single Page Application).
- * 
- * TUTORÍA PARA DESARROLLADORES C#:
- * En ASP.NET Core MVC defines rutas en los controladores con atributos `[Route("...")]`.
- * En React con `react-router-dom`:
- * - `<BrowserRouter>`: intercepta la barra de direcciones del navegador para cambiar de pantalla
- *   al instante sin recargar la página completa desde el servidor (cero parpadeos).
- * - `<Route element={<AppShell />}>`: Define una ruta padre que envuelve a todas las hijas.
- *   El `AppShell` renderiza la Sidebar y BottomNav fijas, y su `<Outlet />` muestra la página hija activa.
  */
 export const App: React.FC = () => {
   return (
@@ -21,33 +17,17 @@ export const App: React.FC = () => {
       <Routes>
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/personas" element={<PersonasPage />} />
+          <Route path="/vacunas" element={<VacunasPage />} />
+          <Route path="/medicamentos" element={<MedicamentosPage />} />
+          <Route path="/razas" element={<RazasPage />} />
           <Route
             path="/animales"
             element={
               <PlaceholderPage
-                title="Censo de Animales"
-                subtitle="Fichas de rescate, fotos, salud y estado de adopción"
+                title="Censo de Animales del Refugio"
+                subtitle="El controlador AnimalController está en desarrollo en el backend. Las razas ya están disponibles en su propio módulo."
                 entityName="Animales"
-              />
-            }
-          />
-          <Route
-            path="/adopciones"
-            element={
-              <PlaceholderPage
-                title="Gestión de Adopciones"
-                subtitle="Control de postulantes, formularios y seguimiento"
-                entityName="Adopciones"
-              />
-            }
-          />
-          <Route
-            path="/atenciones"
-            element={
-              <PlaceholderPage
-                title="Atenciones Veterinarias"
-                subtitle="Historial de vacunas, desparasitaciones y controles"
-                entityName="Atenciones"
               />
             }
           />
