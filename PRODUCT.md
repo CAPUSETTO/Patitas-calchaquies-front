@@ -26,7 +26,9 @@ Sistema operativo de gestión ágil para refugios comunitarios de la región Cal
 ## Capabilities and Constraints
 - Operaciones CRUD completas sobre las entidades del refugio.
 - Conexión vía HTTP a backend C# (.NET) con rutas custom en red local.
-- Acceso directo sin autenticación previa en esta etapa operativa.
+- Dos superficies diferenciadas bajo la skill `impeccable`:
+  1. **Web Pública (`/` — Modo `Persuade`):** Portada comunitaria con bitácora interactiva de animales en adopción y formulario público de postulación (`SolicitudAdopcion`).
+  2. **Login (`/login`) y Dashboard Administrativo (`/admin/*` — Modo `Operate`):** Autenticación vinculada a `Usuario.cs` y `Rol.cs` con rutas protegidas (`ProtectedRoute`) y los 8 módulos operativos del refugio.
 - Cero uso de `any` en TypeScript, interfaces estrictas reflejando los DTOs de C#.
 - Mobile-first con Bottom Navigation para Android y Sidebar para escritorio.
 

@@ -19,7 +19,7 @@ export const BottomNav: React.FC = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/'}
+              end={item.path === '/admin'}
               className={({ isActive }) => `
                 flex flex-col items-center justify-center min-h-[44px] py-1 px-1 text-[11px] font-medium transition-colors
                 ${
@@ -33,7 +33,7 @@ export const BottomNav: React.FC = () => {
                 <>
                   <div
                     className={`p-1 rounded-full transition-all ${
-                      isActive ? 'bg-[#FAF8F5] shadow-2xs' : ''
+                      isActive ? 'bg-[#FAF8F5]' : ''
                     }`}
                   >
                     <Icon

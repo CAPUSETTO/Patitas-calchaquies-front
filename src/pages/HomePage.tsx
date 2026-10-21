@@ -81,7 +81,7 @@ export const HomePage: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/animales')}
+            onClick={() => navigate('/admin/animales')}
             leftIcon={<Plus className="w-4 h-4" />}
           >
             Ingresar Animal
@@ -89,7 +89,7 @@ export const HomePage: React.FC = () => {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => navigate('/adopciones')}
+            onClick={() => navigate('/admin/adopciones')}
             leftIcon={<HeartHandshake className="w-4 h-4" />}
           >
             Nueva Solicitud
@@ -101,7 +101,7 @@ export const HomePage: React.FC = () => {
       <section aria-label="Métricas del refugio" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Animales */}
         <div
-          onClick={() => navigate('/animales')}
+          onClick={() => navigate('/admin/animales')}
           className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
         >
           <div className="w-12 h-12 rounded-xl bg-amber-100/80 text-[#B84A27] flex items-center justify-center shrink-0">
@@ -126,7 +126,7 @@ export const HomePage: React.FC = () => {
 
         {/* Adopciones */}
         <div
-          onClick={() => navigate('/adopciones')}
+          onClick={() => navigate('/admin/adopciones')}
           className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
         >
           <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
@@ -151,7 +151,7 @@ export const HomePage: React.FC = () => {
 
         {/* Atenciones Clínicas */}
         <div
-          onClick={() => navigate('/atenciones')}
+          onClick={() => navigate('/admin/atenciones')}
           className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
         >
           <div className="w-12 h-12 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
@@ -176,7 +176,7 @@ export const HomePage: React.FC = () => {
 
         {/* Padrón de Personas */}
         <div
-          onClick={() => navigate('/personas')}
+          onClick={() => navigate('/admin/personas')}
           className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
         >
           <div className="w-12 h-12 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center shrink-0">
@@ -209,7 +209,7 @@ export const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Animales */}
           <div
-            onClick={() => navigate('/animales')}
+            onClick={() => navigate('/admin/animales')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -231,7 +231,7 @@ export const HomePage: React.FC = () => {
 
           {/* Adopciones */}
           <div
-            onClick={() => navigate('/adopciones')}
+            onClick={() => navigate('/admin/adopciones')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -253,7 +253,7 @@ export const HomePage: React.FC = () => {
 
           {/* Atenciones */}
           <div
-            onClick={() => navigate('/atenciones')}
+            onClick={() => navigate('/admin/atenciones')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -275,7 +275,7 @@ export const HomePage: React.FC = () => {
 
           {/* Personas */}
           <div
-            onClick={() => navigate('/personas')}
+            onClick={() => navigate('/admin/personas')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -300,7 +300,7 @@ export const HomePage: React.FC = () => {
 
           {/* Catálogo de Vacunas */}
           <div
-            onClick={() => navigate('/vacunas')}
+            onClick={() => navigate('/admin/vacunas')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -325,7 +325,7 @@ export const HomePage: React.FC = () => {
 
           {/* Catálogo de Medicamentos */}
           <div
-            onClick={() => navigate('/medicamentos')}
+            onClick={() => navigate('/admin/medicamentos')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
@@ -350,7 +350,7 @@ export const HomePage: React.FC = () => {
 
           {/* Catálogo de Razas */}
           <div
-            onClick={() => navigate('/razas')}
+            onClick={() => navigate('/admin/razas')}
             className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="space-y-2">
