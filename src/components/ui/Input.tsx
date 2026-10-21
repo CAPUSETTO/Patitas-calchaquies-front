@@ -52,9 +52,9 @@ export const Input: React.FC<InputProps> = ({
           disabled={disabled}
           className={`
             w-full rounded-lg bg-white border px-3.5 py-2.5 text-base sm:text-sm text-stone-900 
-            placeholder:text-stone-400 transition-colors
+            placeholder:text-stone-500 caret-[#B84A27] transition-colors
             focus:outline-hidden focus:ring-2 focus:ring-offset-1
-            disabled:bg-stone-100 disabled:text-stone-500 disabled:cursor-not-allowed
+            disabled:bg-stone-100 disabled:text-stone-600 disabled:cursor-not-allowed
             min-h-[44px]
             ${leftIcon ? 'pl-10' : ''}
             ${error 

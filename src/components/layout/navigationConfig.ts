@@ -1,12 +1,11 @@
 import React from 'react';
-import { Home, Dog, HeartHandshake, Stethoscope } from 'lucide-react';
+import { Home, Users, Syringe, Stethoscope, Sparkles } from 'lucide-react';
 
 export interface NavItem {
   name: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
   description?: string;
-  badge?: string;
 }
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
@@ -17,21 +16,27 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     description: 'Resumen operativo del refugio',
   },
   {
-    name: 'Animales',
-    path: '/animales',
-    icon: Dog,
-    description: 'Censo y fichas de rescate',
+    name: 'Personas',
+    path: '/personas',
+    icon: Users,
+    description: 'Adoptantes, voluntarios y contactos (api/Personas)',
   },
   {
-    name: 'Adopciones',
-    path: '/adopciones',
-    icon: HeartHandshake,
-    description: 'Postulantes y adopciones',
+    name: 'Vacunas',
+    path: '/vacunas',
+    icon: Syringe,
+    description: 'Catálogo de vacunas (api/Vacuna)',
   },
   {
-    name: 'Atenciones',
-    path: '/atenciones',
+    name: 'Medicamentos',
+    path: '/medicamentos',
     icon: Stethoscope,
-    description: 'Controles veterinarios y vacunas',
+    description: 'Catálogo de medicamentos (api/Medicamento)',
+  },
+  {
+    name: 'Razas',
+    path: '/razas',
+    icon: Sparkles,
+    description: 'Catálogo de razas por especie (api/Raza)',
   },
 ];
