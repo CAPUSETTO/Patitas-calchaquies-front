@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MAIN_NAV_ITEMS } from './navigationConfig';
+import { BOTTOM_NAV_ITEMS } from './navigationConfig';
 
 /**
- * BottomNav - Barra de navegación fija inferior para dispositivos móviles (Android / iOS).
+ * BottomNav - Barra de navegación fija inferior para Android / iOS.
+ * Muestra los 5 módulos centrales del refugio dentro del alcance del pulgar.
  */
 export const BottomNav: React.FC = () => {
   return (
@@ -12,7 +13,7 @@ export const BottomNav: React.FC = () => {
       className="fixed bottom-0 inset-x-0 z-40 bg-[#F3EFEA]/95 backdrop-blur-md border-t border-[#E5DFD7] md:hidden safe-bottom"
     >
       <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
-        {MAIN_NAV_ITEMS.map((item) => {
+        {BOTTOM_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink

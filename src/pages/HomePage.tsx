@@ -1,34 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Dog,
+  HeartHandshake,
+  Stethoscope,
   Users,
   Syringe,
-  Stethoscope,
+  Pill,
   Sparkles,
   ArrowRight,
-  Search,
-  Trash2,
+  Plus,
 } from 'lucide-react';
 import {
   Button,
-  Input,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
   Badge,
-  ErrorAlert,
-  ConfirmModal,
+  Skeleton,
 } from '../components/ui';
+import { animalService } from '../services/animalService';
+import { personaService } from '../services/personaService';
+import { adopcionService } from '../services/adopcionService';
+import { atencionService } from '../services/atencionService';
 
-/**
- * HomePage - Panel Operativo Principal del Refugio Patitas Calchaquíes.
- */
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [animalName, setAnimalName] = useState<string>('');
-  const [showError, setShowError] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const [metricas, setMetricas] = useState({
+    totalAnimales: 0,
+    disponiblesAdopcion: 0,
+    totalPersonas: 0,
+    solicitudesPendientes: 0,
+    totalAtenciones: 0,
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let montado = true;
+    const cargarResumen = async () => {
+      try {
+        const [animales, personas, adopciones, atenciones] = await Promise.all([
+          animalService.getAll().catch(() => []),
+          personaService.getAll().catch(() => []),
+          adopcionService.getAll().catch(() => []),
+          atencionService.getAll().catch(() => []),
+        ]);
+
+        if (montado) {
+          setMetricas({
+            totalAnimales: animales.length,
+            disponiblesAdopcion: animales.filter((a) => a.idEstado === 1).length,
+            totalPersonas: personas.length,
+            solicitudesPendientes: adopciones.filter((s) => s.estado === 'Pendiente').length,
+            totalAtenciones: atenciones.length,
+          });
+        }
+      } finally {
+        if (montado) setIsLoading(false);
+      }
+    };
+
+    void cargarResumen();
+    return () => {
+      montado = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -39,248 +73,307 @@ export const HomePage: React.FC = () => {
             Panel Operativo del Refugio
           </h2>
           <p className="text-sm text-stone-600 mt-1">
-            Gestión conectada a tu API en C# (puerto 5227).
+            Sistema de gestión integral para rescates, fichas clínicas y adopciones responsables.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/animales')}
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Ingresar Animal
+          </Button>
           <Button
             variant="primary"
-            size="md"
-            onClick={() => navigate('/personas')}
-            rightIcon={<ArrowRight className="w-4 h-4" />}
+            size="sm"
+            onClick={() => navigate('/adopciones')}
+            leftIcon={<HeartHandshake className="w-4 h-4" />}
           >
-            Padrón de Personas
+            Nueva Solicitud
           </Button>
         </div>
       </div>
 
-      {/* Directorio de Módulos Activos de la API */}
-      <section aria-label="Estado de módulos del backend" className="bg-white rounded-xl border border-[#E5DFD7] overflow-hidden">
-        <div className="px-5 py-4 bg-[#F3EFEA]/70 border-b border-[#E5DFD7] flex items-center justify-between">
-          <h3 className="font-semibold text-base text-stone-900">
-            Módulos Conectados con Controladores C#
-          </h3>
-          <span className="text-xs font-medium text-stone-600 tabular-data">
-            Puerto 5227
-          </span>
+      {/* Métricas Operativas Clave */}
+      <section aria-label="Métricas del refugio" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        {/* Animales */}
+        <div
+          onClick={() => navigate('/animales')}
+          className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
+        >
+          <div className="w-12 h-12 rounded-xl bg-amber-100/80 text-[#B84A27] flex items-center justify-center shrink-0">
+            <Dog className="w-6 h-6 stroke-[2]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-stone-600">Animales en Refugio</p>
+            {isLoading ? (
+              <Skeleton className="h-7 w-16 mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-stone-900 tracking-tight mt-0.5 tabular-data">
+                {metricas.totalAnimales}
+              </p>
+            )}
+            <div className="mt-1">
+              <Badge variant="success" dot>
+                {metricas.disponiblesAdopcion} en adopción
+              </Badge>
+            </div>
+          </div>
         </div>
 
-        <div className="divide-y divide-[#E5DFD7]">
-          {/* 1. Personas */}
-          <div className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors">
-            <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center shrink-0">
-                <Users className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-stone-900 text-sm sm:text-base">
-                    Padrón de Personas
-                  </span>
-                  <Badge variant="success" dot>
-                    CRUD Completo
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-                  Consume <code className="font-mono text-xs bg-[#F3EFEA] px-1.5 py-0.5 rounded">api/Personas</code> (Alta, Baja, Modificación, Detalle, búsqueda por DNI y nombre).
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate('/personas')}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              className="self-end sm:self-center shrink-0"
-            >
-              Abrir
-            </Button>
+        {/* Adopciones */}
+        <div
+          onClick={() => navigate('/adopciones')}
+          className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
+        >
+          <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <HeartHandshake className="w-6 h-6 stroke-[2]" />
           </div>
-
-          {/* 2. Vacunas */}
-          <div className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors">
-            <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center shrink-0">
-                <Syringe className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-stone-900 text-sm sm:text-base">
-                    Catálogo de Vacunas
-                  </span>
-                  <Badge variant="success" dot>
-                    CRUD Completo
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-                  Consume <code className="font-mono text-xs bg-[#F3EFEA] px-1.5 py-0.5 rounded">api/Vacuna</code> (Alta, Baja, Modificación y búsqueda por nombre).
-                </p>
-              </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-stone-600">Adopciones y Trámites</p>
+            {isLoading ? (
+              <Skeleton className="h-7 w-16 mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-stone-900 tracking-tight mt-0.5 tabular-data">
+                {metricas.solicitudesPendientes}
+              </p>
+            )}
+            <div className="mt-1">
+              <Badge variant={metricas.solicitudesPendientes > 0 ? 'warning' : 'neutral'} dot>
+                {metricas.solicitudesPendientes > 0 ? 'Pendientes de firma' : 'Al día'}
+              </Badge>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate('/vacunas')}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              className="self-end sm:self-center shrink-0"
-            >
-              Abrir
-            </Button>
           </div>
+        </div>
 
-          {/* 3. Medicamentos */}
-          <div className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors">
-            <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center shrink-0">
-                <Stethoscope className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-stone-900 text-sm sm:text-base">
-                    Catálogo de Medicamentos
-                  </span>
-                  <Badge variant="success" dot>
-                    CRUD Completo
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-                  Consume <code className="font-mono text-xs bg-[#F3EFEA] px-1.5 py-0.5 rounded">api/Medicamento</code> (Alta, Baja, Modificación y búsqueda por nombre).
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate('/medicamentos')}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              className="self-end sm:self-center shrink-0"
-            >
-              Abrir
-            </Button>
+        {/* Atenciones Clínicas */}
+        <div
+          onClick={() => navigate('/atenciones')}
+          className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
+        >
+          <div className="w-12 h-12 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+            <Stethoscope className="w-6 h-6 stroke-[2]" />
           </div>
-
-          {/* 4. Razas */}
-          <div className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors">
-            <div className="flex items-start gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-stone-900 text-sm sm:text-base">
-                    Catálogo de Razas
-                  </span>
-                  <Badge variant="success" dot>
-                    Filtro por Especie y Alta
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-                  Consume <code className="font-mono text-xs bg-[#F3EFEA] px-1.5 py-0.5 rounded">api/Raza</code> (Listado completo, filtrado por especie y registro de nuevas razas).
-                </p>
-              </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-stone-600">Historial Clínico</p>
+            {isLoading ? (
+              <Skeleton className="h-7 w-16 mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-stone-900 tracking-tight mt-0.5 tabular-data">
+                {metricas.totalAtenciones}
+              </p>
+            )}
+            <div className="mt-1">
+              <Badge variant="info" dot>
+                Consultas y vacunas
+              </Badge>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate('/razas')}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              className="self-end sm:self-center shrink-0"
-            >
-              Abrir
-            </Button>
+          </div>
+        </div>
+
+        {/* Padrón de Personas */}
+        <div
+          onClick={() => navigate('/personas')}
+          className="bg-white rounded-xl border border-[#E5DFD7] p-4 sm:p-5 flex items-center gap-4 hover:border-[#B84A27]/60 transition-colors cursor-pointer shadow-2xs"
+        >
+          <div className="w-12 h-12 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6 stroke-[2]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-stone-600">Padrón de Personas</p>
+            {isLoading ? (
+              <Skeleton className="h-7 w-16 mt-1" />
+            ) : (
+              <p className="text-2xl font-bold text-stone-900 tracking-tight mt-0.5 tabular-data">
+                {metricas.totalPersonas}
+              </p>
+            )}
+            <div className="mt-1">
+              <Badge variant="success" dot>
+                Conectado con API C#
+              </Badge>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Banco de Pruebas de Componentes UI */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Prueba de Input y Reactividad (useState)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              label="Nombre de prueba"
-              placeholder="Escribe para probar reactividad..."
-              value={animalName}
-              onChange={(e) => {
-                setAnimalName(e.target.value);
-                if (showError && e.target.value.trim().length > 0) {
-                  setShowError(false);
-                }
-              }}
-              error={showError ? 'Este campo no puede quedar vacío' : undefined}
-              helperText={!showError ? 'Tamaño 16px en móvil para evitar zoom involuntario' : undefined}
-              leftIcon={<Search className="w-4 h-4" />}
-            />
+      {/* Módulos Operativos del Refugio */}
+      <section aria-label="Módulos del sistema" className="space-y-3">
+        <h3 className="font-bold text-base text-stone-900 tracking-tight">
+          Módulos de Gestión del Refugio
+        </h3>
 
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  if (!animalName.trim()) setShowError(true);
-                }}
-              >
-                Validar Campo
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setAnimalName('');
-                  setShowError(false);
-                }}
-              >
-                Limpiar
-              </Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Animales */}
+          <div
+            onClick={() => navigate('/animales')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Dog className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold text-base text-stone-900">
+                Censo de Animales
+              </h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Fichas de rescate con fotografía, historial, raza por especie, sexo, estado de castración y adopción.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Tokens Semánticos y Modal</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="success" dot>Disponible</Badge>
-              <Badge variant="warning" dot>En Tratamiento</Badge>
-              <Badge variant="danger" dot>Urgente</Badge>
-              <Badge variant="info" dot>Adoptado</Badge>
-              <Badge variant="neutral">Inactivo</Badge>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Abrir censo</span>
+              <ArrowRight className="w-4 h-4" />
             </div>
+          </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => setIsModalOpen(true)}
-                leftIcon={<Trash2 className="w-4 h-4" />}
-              >
-                Probar Modal de Confirmación
-              </Button>
+          {/* Adopciones */}
+          <div
+            onClick={() => navigate('/adopciones')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <HeartHandshake className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold text-base text-stone-900">
+                Gestión de Adopciones
+              </h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Tablero de solicitudes vinculando adoptantes y animales, con aprobación y formalización de contratos.
+              </p>
             </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Ver solicitudes</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
 
-            <ErrorAlert
-              title="Prueba de alerta de comunicación"
-              message="Cuando la API devuelva un error de validación o la base de datos no esté accesible, se notificará aquí con opción de reintento."
-            />
-          </CardContent>
-        </Card>
-      </div>
+          {/* Atenciones */}
+          <div
+            onClick={() => navigate('/atenciones')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Stethoscope className="w-5 h-5" />
+              </div>
+              <h4 className="font-bold text-base text-stone-900">
+                Atenciones Clínicas
+              </h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Historial de visitas veterinarias, diagnósticos, aplicación de vacunas y prescripción de fármacos.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Ver historial médico</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
 
-      <ConfirmModal
-        isOpen={isModalOpen}
-        title="¿Confirmar acción de prueba?"
-        description="Este modal accesible bloquea el scroll de fondo y se cierra con la tecla Escape."
-        confirmLabel="Confirmar"
-        cancelLabel="Cancelar"
-        variant="danger"
-        onConfirm={() => setIsModalOpen(false)}
-        onClose={() => setIsModalOpen(false)}
-      />
+          {/* Personas */}
+          <div
+            onClick={() => navigate('/personas')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-base text-stone-900">
+                  Padrón de Personas
+                </h4>
+                <Badge variant="success">API Real</Badge>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                CRUD completo con backend C# (<code className="font-mono text-[11px]">api/Personas</code>), búsqueda por DNI exacto y por nombre.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Abrir padrón</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Catálogo de Vacunas */}
+          <div
+            onClick={() => navigate('/vacunas')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Syringe className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-base text-stone-900">
+                  Catálogo de Vacunas
+                </h4>
+                <Badge variant="success">API Real</Badge>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                CRUD completo con backend C# (<code className="font-mono text-[11px]">api/Vacuna</code>), plan de inmunización y dosis.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Gestionar vacunas</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Catálogo de Medicamentos */}
+          <div
+            onClick={() => navigate('/medicamentos')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Pill className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-base text-stone-900">
+                  Catálogo de Medicamentos
+                </h4>
+                <Badge variant="success">API Real</Badge>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                CRUD completo con backend C# (<code className="font-mono text-[11px]">api/Medicamento</code>), vías de administración y posología.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Gestionar medicamentos</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* Catálogo de Razas */}
+          <div
+            onClick={() => navigate('/razas')}
+            className="bg-white rounded-xl border border-[#E5DFD7] p-5 space-y-3 hover:border-[#B84A27]/60 transition-colors cursor-pointer flex flex-col justify-between shadow-2xs"
+          >
+            <div className="space-y-2">
+              <div className="w-10 h-10 rounded-lg bg-[#F3EFEA] border border-[#E5DFD7] text-[#B84A27] flex items-center justify-center">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-base text-stone-900">
+                  Catálogo de Razas
+                </h4>
+                <Badge variant="success">API Real</Badge>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Listado y alta con backend C# (<code className="font-mono text-[11px]">api/Raza</code>), filtrado dinámico por especie.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between text-xs font-semibold text-[#B84A27]">
+              <span>Gestionar razas</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
