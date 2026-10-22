@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  PawPrint,
   ArrowLeft,
   KeyRound,
   ShieldCheck,
@@ -68,23 +67,25 @@ export const LoginPage: React.FC = () => {
   };
 
   const obtenerIconoRol = (idRol: number) => {
-    if (idRol === 1) return <ShieldCheck className="w-5 h-5 text-[#2563EB]" />;
-    if (idRol === 2) return <Stethoscope className="w-5 h-5 text-[#059669]" />;
-    return <HeartHandshake className="w-5 h-5 text-[#F97316]" />;
+    if (idRol === 1) return <ShieldCheck className="w-5 h-5 text-[#DC2626]" />;
+    if (idRol === 2) return <Stethoscope className="w-5 h-5 text-[#16A34A]" />;
+    return <HeartHandshake className="w-5 h-5 text-[#0F291E]" />;
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] bg-modern-dots text-[#0F172A] flex flex-col">
-      {/* Cabecera Superior Pizarra Nocturna */}
-      <header className="bg-[#0F172A] text-white border-b border-[#1E293B]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#F7FAF8] bg-modern-dots text-[#0F291E] flex flex-col">
+      {/* Cabecera Superior en Blanco Puro con el Logo Oficial */}
+      <header className="bg-white/95 backdrop-blur-md text-[#0F291E] border-b border-[#DCE6DF]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
           <Link
             to="/"
-            className="inline-flex items-center gap-3 text-white hover:text-[#60A5FA] transition-colors"
+            className="inline-flex items-center gap-3.5 text-[#0F291E] hover:text-[#16A34A] transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-[0_4px_14px_rgba(37,99,235,0.45)]">
-              <PawPrint className="w-5 h-5 stroke-[2.2]" />
-            </div>
+            <img
+              src="/logo-patitas.jpg"
+              alt="Logo oficial Asociación Protectora de Animales"
+              className="w-14 h-14 object-contain shrink-0 mix-blend-multiply"
+            />
             <div>
               <span
                 className="font-black text-base sm:text-lg tracking-tight block leading-none"
@@ -92,15 +93,15 @@ export const LoginPage: React.FC = () => {
               >
                 Patitas Calchaquíes
               </span>
-              <span className="font-mono text-[11px] text-[#94A3B8] block mt-1">
-                PORTAL DE TRABAJADORES · RUTA 40
+              <span className="font-mono text-[11px] font-bold text-[#DC2626] block mt-1">
+                ASOCIACIÓN PROTECTORA DE ANIMALES
               </span>
             </div>
           </Link>
 
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-3.5 min-h-[40px] rounded-xl bg-[#1E293B] hover:bg-[#334155] text-white border border-[#334155] text-xs sm:text-sm font-bold transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 min-h-[40px] rounded-xl bg-[#EDF4F0] hover:bg-[#DCE6DF] text-[#0F291E] border border-[#B8CCC0] text-xs sm:text-sm font-bold transition-colors"
             style={{ fontFamily: 'var(--font-display)' }}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -111,21 +112,29 @@ export const LoginPage: React.FC = () => {
 
       {/* Contenedor Principal Partido (7:5) sin tarjetas anidadas */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex items-center">
-        <div className="w-full surface-layered rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#E2E8F0]">
+        <div className="w-full surface-layered rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#DCE6DF]">
           {/* Columna Izquierda (7 cols): Formulario de Acceso */}
           <section className="lg:col-span-7 p-6 sm:p-8 lg:p-10 space-y-6 bg-white">
-            <div className="border-b border-[#E2E8F0] pb-5 space-y-2">
-              <h1
-                className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Ingreso al Dashboard de Trabajadores
-              </h1>
-              <p className="text-sm sm:text-base text-[#334155] leading-relaxed">
-                Acceso para coordinación, equipo veterinario y guardia voluntaria. Modelado sobre{' '}
-                <code className="font-mono font-bold text-xs text-[#2563EB]">Usuario.cs</code> y{' '}
-                <code className="font-mono font-bold text-xs text-[#2563EB]">Rol.cs</code> de tu API C#.
-              </p>
+            <div className="border-b border-[#DCE6DF] pb-5 flex items-center gap-4">
+              <img
+                src="/logo-patitas.jpg"
+                alt="Emblema Asociación Protectora de Animales"
+                className="w-16 h-16 object-contain shrink-0 hidden sm:block mix-blend-multiply"
+              />
+              <div className="space-y-1.5">
+                <h1
+                  className="text-2xl sm:text-3xl font-black text-[#0F291E] tracking-tight"
+                  style={{ fontFamily: 'var(--font-display)' }}
+                >
+                  Ingreso al Dashboard de Trabajadores
+                </h1>
+                <p className="text-sm sm:text-base text-[#2D4A3E] leading-relaxed">
+                  Acceso exclusivo para coordinación, equipo veterinario y guardia voluntaria.
+                  Modelado sobre{' '}
+                  <code className="font-mono font-bold text-xs text-[#16A34A]">Usuario.cs</code> y{' '}
+                  <code className="font-mono font-bold text-xs text-[#16A34A]">Rol.cs</code>.
+                </p>
+              </div>
             </div>
 
             {errorMsg && (
@@ -149,14 +158,14 @@ export const LoginPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="login-password"
-                    className="block text-sm font-bold text-[#0F172A]"
+                    className="block text-sm font-bold text-[#0F291E]"
                   >
-                    Contraseña <span className="text-[#F97316]">*</span>
+                    Contraseña <span className="text-[#DC2626]">*</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => setMostrarPassword((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#16A34A] hover:text-[#15803D] cursor-pointer"
                   >
                     {mostrarPassword ? (
                       <>
@@ -179,7 +188,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="Ingresa tu contraseña"
                   autoComplete="current-password"
                   required
-                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] text-base placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB]"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#B8CCC0] bg-white text-[#0F291E] text-base placeholder:text-[#527062] focus:outline-none focus:ring-2 focus:ring-[#16A34A]/25 focus:border-[#16A34A]"
                 />
               </div>
 
@@ -199,27 +208,27 @@ export const LoginPage: React.FC = () => {
           </section>
 
           {/* Columna Derecha (5 cols): Perfiles de Rol en 1 Toque */}
-          <aside className="lg:col-span-5 bg-[#F8FAFC] flex flex-col justify-between">
-            <div className="p-5 sm:p-6 bg-[#F1F5F9] border-b border-[#E2E8F0] space-y-1">
+          <aside className="lg:col-span-5 bg-[#F7FAF8] flex flex-col justify-between">
+            <div className="p-5 sm:p-6 bg-[#EDF4F0] border-b border-[#DCE6DF] space-y-1">
               <h2
-                className="text-lg font-black text-[#0F172A] tracking-tight"
+                className="text-lg font-black text-[#0F291E] tracking-tight"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 Acceso Rápido por Rol (1 Toque)
               </h2>
-              <p className="text-xs sm:text-sm text-[#475569]">
+              <p className="text-xs sm:text-sm text-[#2D4A3E]">
                 Selecciona un perfil de prueba para entrar sin tipear desde PC o Android:
               </p>
             </div>
 
-            <div className="divide-y divide-[#E2E8F0] flex-1">
+            <div className="divide-y divide-[#DCE6DF] flex-1">
               {demoAccounts.map((cuenta) => {
                 const seleccionado = user.toLowerCase() === cuenta.user.toLowerCase();
                 return (
                   <div
                     key={cuenta.usuario.idUsuario}
                     className={`p-5 transition-colors ${
-                      seleccionado ? 'bg-[#EFF6FF]/75' : 'bg-white'
+                      seleccionado ? 'bg-[#F0FDF4]' : 'bg-white'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -227,24 +236,24 @@ export const LoginPage: React.FC = () => {
                         <span
                           className={`w-3.5 h-3.5 rounded-full border shrink-0 ${
                             seleccionado
-                              ? 'bg-[#2563EB] border-[#1D4ED8]'
-                              : 'bg-white border-[#CBD5E1]'
+                              ? 'bg-[#16A34A] border-[#15803D]'
+                              : 'bg-white border-[#B8CCC0]'
                           }`}
                         />
                         {obtenerIconoRol(cuenta.rol.idRol)}
                         <div className="min-w-0">
-                          <h3 className="font-bold text-base text-[#0F172A] truncate">
+                          <h3 className="font-bold text-base text-[#0F291E] truncate">
                             {cuenta.etiqueta}
                           </h3>
-                          <p className="text-xs text-[#475569] font-mono font-bold truncate tabular-data">
+                          <p className="text-xs text-[#2D4A3E] font-mono font-bold truncate tabular-data">
                             {cuenta.user} · Rol #{cuenta.rol.idRol} ({cuenta.rol.nombre})
                           </p>
                         </div>
                       </div>
-                      {seleccionado && <Badge variant="info">Activo</Badge>}
+                      {seleccionado && <Badge variant="success">Activo</Badge>}
                     </div>
 
-                    <p className="text-sm text-[#334155] mt-2 leading-relaxed">
+                    <p className="text-sm text-[#2D4A3E] mt-2 leading-relaxed">
                       {cuenta.resumenPermisos}
                     </p>
 

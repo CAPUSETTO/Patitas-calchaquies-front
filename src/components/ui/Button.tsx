@@ -15,15 +15,15 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-white border border-[#1D4ED8] shadow-[0_6px_16px_-4px_rgba(37,99,235,0.35)] focus-visible:ring-[#2563EB]',
+    'bg-[#16A34A] hover:bg-[#15803D] active:bg-[#166534] text-white border border-[#15803D] shadow-[0_6px_16px_-4px_rgba(22,163,74,0.38)] focus-visible:ring-[#16A34A]',
   secondary:
-    'bg-[#F97316] hover:bg-[#EA580C] active:bg-[#C2410C] text-white border border-[#EA580C] shadow-[0_6px_16px_-4px_rgba(249,115,22,0.35)] focus-visible:ring-[#F97316]',
+    'bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] text-white border border-[#B91C1C] shadow-[0_6px_16px_-4px_rgba(220,38,38,0.35)] focus-visible:ring-[#DC2626]',
   outline:
-    'bg-white hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#0F172A] border border-[#CBD5E1] hover:border-[#94A3B8] focus-visible:ring-[#2563EB]',
+    'bg-white hover:bg-[#EDF4F0] active:bg-[#DCE6DF] text-[#0F291E] border border-[#B8CCC0] hover:border-[#8FA89B] focus-visible:ring-[#16A34A]',
   danger:
     'bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] text-white border border-[#B91C1C] focus-visible:ring-[#DC2626]',
   ghost:
-    'bg-transparent hover:bg-[#F1F5F9] active:bg-[#E2E8F0] text-[#334155] hover:text-[#0F172A] border border-transparent focus-visible:ring-[#64748B]',
+    'bg-transparent hover:bg-[#EDF4F0] active:bg-[#DCE6DF] text-[#2D4A3E] hover:text-[#0F291E] border border-transparent focus-visible:ring-[#527062]',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

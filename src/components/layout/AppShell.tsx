@@ -1,13 +1,13 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { PawPrint, ExternalLink, LogOut } from 'lucide-react';
+import { ExternalLink, LogOut } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { authService } from '../../services/authService';
 
 /**
  * AppShell - Contenedor maestro del Dashboard Administrativo (/admin).
- * Diseñado en Blanco Titanio (#F8FAFC) y Pizarra Nocturna (#0F172A) para lectura sin fatiga.
+ * Armonizado con los colores del Emblema Oficial (Bosque Profundo #0F291E y Blanco Salvia #F7FAF8).
  */
 export const AppShell: React.FC = () => {
   const navigate = useNavigate();
@@ -19,24 +19,26 @@ export const AppShell: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col">
+    <div className="min-h-screen bg-[#F7FAF8] text-[#0F291E] flex flex-col">
       {/* 1. Barra Lateral en Escritorio */}
       <Sidebar />
 
       {/* 2. Cabecera Móvil (Solo visible en pantallas pequeñas) */}
-      <header className="sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-[#0F172A] text-white border-b border-[#1E293B] md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between px-4 h-16 bg-white/95 backdrop-blur-md text-[#0F291E] border-b border-[#DCE6DF] md:hidden">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#2563EB] text-white flex items-center justify-center shrink-0">
-            <PawPrint className="w-4 h-4 stroke-[2.2]" />
-          </div>
+          <img
+            src="/logo-patitas.jpg"
+            alt="Logo Asociación Protectora de Animales"
+            className="w-11 h-11 object-contain shrink-0 mix-blend-multiply"
+          />
           <div className="min-w-0">
             <span
-              className="font-black text-sm tracking-tight text-white block leading-tight truncate"
+              className="font-black text-sm tracking-tight text-[#0F291E] block leading-tight truncate"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               Patitas Calchaquíes
             </span>
-            <span className="font-mono text-[11px] text-[#94A3B8] block leading-none truncate">
+            <span className="font-mono text-[11px] text-[#16A34A] font-bold block leading-none truncate">
               {session ? `${session.usuario.user} · ${session.rol.nombre}` : 'PANEL'}
             </span>
           </div>
@@ -45,16 +47,16 @@ export const AppShell: React.FC = () => {
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-bold text-white bg-[#1E293B] border border-[#334155]"
+            className="inline-flex items-center gap-1 px-2.5 min-h-[36px] rounded-lg text-xs font-bold text-[#0F291E] bg-[#EDF4F0] border border-[#B8CCC0]"
             title="Ver Landing pública"
           >
-            <ExternalLink className="w-3.5 h-3.5 text-[#FB923C]" />
+            <ExternalLink className="w-3.5 h-3.5 text-[#16A34A]" />
             <span>Landing</span>
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center justify-center min-h-[36px] min-w-[36px] rounded-lg text-white hover:bg-[#DC2626] bg-[#1E293B] border border-[#334155]"
+            className="inline-flex items-center justify-center min-h-[36px] min-w-[36px] rounded-lg text-[#0F291E] hover:text-white hover:bg-[#DC2626] bg-[#EDF4F0] border border-[#B8CCC0]"
             title="Cerrar sesión"
           >
             <LogOut className="w-4 h-4" />

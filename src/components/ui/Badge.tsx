@@ -10,19 +10,19 @@ export interface BadgeProps {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  success: 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]',
+  success: 'bg-[#F0FDF4] text-[#14532D] border-[#86EFAC]',
   warning: 'bg-[#FFF7ED] text-[#9A3412] border-[#FED7AA]',
   danger: 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]',
-  info: 'bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]',
-  neutral: 'bg-[#F1F5F9] text-[#334155] border-[#CBD5E1]',
+  info: 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]',
+  neutral: 'bg-[#EDF4F0] text-[#2D4A3E] border-[#B8CCC0]',
 };
 
 const dotStyles: Record<BadgeVariant, string> = {
-  success: 'bg-[#059669]',
-  warning: 'bg-[#F97316]',
+  success: 'bg-[#16A34A]',
+  warning: 'bg-[#EA580C]',
   danger: 'bg-[#DC2626]',
-  info: 'bg-[#2563EB]',
-  neutral: 'bg-[#64748B]',
+  info: 'bg-[#059669]',
+  neutral: 'bg-[#527062]',
 };
 
 export const Badge: React.FC<BadgeProps> = ({

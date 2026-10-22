@@ -6,19 +6,20 @@
     --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
     --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, monospace;
 
-    /* Paleta Moderna: Blanco Titanio, Pizarra Nocturna y Capas Vibrantes (Cobalto, Coral, Esmeralda) */
-    --bg-canvas: #F8FAFC;
+    /* Paleta Oficial Armonizada con el Logo:
+       Bosque Profundo (#0F291E), Verde Valles (#16A34A / #4DB83B), Rojo Protectora (#DC2626) y Blanco Salvia (#F7FAF8) */
+    --bg-canvas: #F7FAF8;
     --bg-surface: #FFFFFF;
-    --bg-subtle: #F1F5F9;
-    --bg-night: #0F172A;
-    --text-primary: #0F172A;
-    --text-secondary: #334155;
-    --text-muted: #64748B;
-    --accent-cobalt: #2563EB;
-    --accent-coral: #F97316;
-    --accent-emerald: #059669;
-    --border-subtle: #E2E8F0;
-    --border-strong: #CBD5E1;
+    --bg-subtle: #EDF4F0;
+    --bg-forest: #0F291E;
+    --text-primary: #0F291E;
+    --text-secondary: #2D4A3E;
+    --text-muted: #527062;
+    --accent-green: #16A34A;
+    --accent-leaf: #4DB83B;
+    --accent-red: #DC2626;
+    --border-subtle: #DCE6DF;
+    --border-strong: #B8CCC0;
 
     color-scheme: light;
   }
@@ -29,7 +30,7 @@
     color: var(--text-primary);
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
-    caret-color: var(--accent-cobalt);
+    caret-color: var(--accent-green);
   }
 
   body {
@@ -52,7 +53,7 @@
   }
 
   ::selection {
-    background-color: #2563EB;
+    background-color: #16A34A;
     color: #FFFFFF;
   }
 }
@@ -63,22 +64,22 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Textura de puntos sutil estilo Riso moderno sobre Blanco Titanio */
+/* Textura de puntos sutil con los dos tonos del logo (Verde Hoja + Rojo Protectora) */
 .bg-modern-dots {
-  background-color: #F8FAFC;
-  background-image: radial-gradient(rgba(37, 99, 235, 0.10) 1px, transparent 1px),
-    radial-gradient(rgba(249, 115, 22, 0.08) 1px, #F8FAFC 1px);
+  background-color: #F7FAF8;
+  background-image: radial-gradient(rgba(22, 163, 74, 0.11) 1px, transparent 1px),
+    radial-gradient(rgba(220, 38, 38, 0.07) 1px, #F7FAF8 1px);
   background-size: 28px 28px;
   background-position: 0 0, 14px 14px;
 }
 
-/* Superficie con elevación suave de capas cromáticas (Cobalto + Coral) */
+/* Superficie con elevación suave de capas cromáticas del logo */
 .surface-layered {
   background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #DCE6DF;
   box-shadow:
-    0 18px 38px -14px rgba(15, 23, 42, 0.08),
-    0 8px 20px -8px rgba(37, 99, 235, 0.07);
+    0 18px 38px -14px rgba(15, 41, 30, 0.08),
+    0 8px 20px -8px rgba(22, 163, 74, 0.07);
   transition:
     transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -87,10 +88,10 @@
 
 .surface-layered-interactive:hover {
   transform: translate3d(0, -3px, 0);
-  border-color: #93C5FD;
+  border-color: #86EFAC;
   box-shadow:
-    0 22px 44px -14px rgba(37, 99, 235, 0.16),
-    0 10px 24px -10px rgba(249, 115, 22, 0.14);
+    0 22px 44px -14px rgba(22, 163, 74, 0.16),
+    0 10px 24px -10px rgba(220, 38, 38, 0.12);
 }
 
 /* Animación de entrada impulsada por Scroll (IntersectionObserver) */
@@ -111,7 +112,7 @@
   filter: blur(0);
 }
 
-/* Desplazamiento de capas Riso al hacer hover sobre retratos o estaciones */
+/* Desplazamiento de capas Riso con el Verde Hoja (#4DB83B) y Rojo Protectora (#DC2626) del logo */
 .riso-frame {
   position: relative;
   isolation: isolate;
@@ -129,23 +130,23 @@
 }
 
 .riso-frame::before {
-  background-color: rgba(37, 99, 235, 0.14);
-  transform: translate3d(-6px, 6px, 0);
+  background-color: rgba(77, 184, 59, 0.22);
+  transform: translate3d(-7px, 7px, 0);
 }
 
 .riso-frame::after {
-  background-color: rgba(249, 115, 22, 0.14);
-  transform: translate3d(6px, -6px, 0);
+  background-color: rgba(220, 38, 38, 0.18);
+  transform: translate3d(7px, -7px, 0);
 }
 
 .riso-frame:hover::before {
-  transform: translate3d(-10px, 10px, 0);
-  background-color: rgba(37, 99, 235, 0.22);
+  transform: translate3d(-11px, 11px, 0);
+  background-color: rgba(77, 184, 59, 0.30);
 }
 
 .riso-frame:hover::after {
-  transform: translate3d(10px, -10px, 0);
-  background-color: rgba(249, 115, 22, 0.22);
+  transform: translate3d(11px, -11px, 0);
+  background-color: rgba(220, 38, 38, 0.25);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -162,21 +163,21 @@
   }
 }
 
-/* Scrollbar limpia y moderna */
+/* Scrollbar limpia y moderna en tonos bosque */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #EDF4F0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94A3B8;
+  background: #8FA89B;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #2D4A3E;
 }
