@@ -77,7 +77,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/animales',
       detalle: 'Fichas de rescate, sectores, nutrición y estados',
       icono: Dog,
-      contador: `${animales.length} FICHAS`,
+      contador: `${animales.length} fichas`,
       origen: 'Core · Animal.cs',
       esReal: false,
     },
@@ -86,7 +86,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/adopciones',
       detalle: 'Aprobación de postulaciones web y contratos',
       icono: HeartHandshake,
-      contador: `${solicitudesPendientes.length} PENDIENTES`,
+      contador: `${solicitudesPendientes.length} pendientes`,
       origen: 'Core · SolicitudAdopcion.cs',
       esReal: false,
     },
@@ -95,7 +95,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/atenciones',
       detalle: 'Consultas, diagnósticos, vacunas y tratamientos',
       icono: Stethoscope,
-      contador: `${totalAtenciones} REGISTROS`,
+      contador: `${totalAtenciones} registros`,
       origen: 'Core · Atencion_Veterinario.cs',
       esReal: false,
     },
@@ -104,7 +104,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/personas',
       detalle: 'Adoptantes, rescatistas y búsqueda por DNI/Nombre',
       icono: Users,
-      contador: `${totalPersonas} ACTIVOS`,
+      contador: `${totalPersonas} activos`,
       origen: 'api/Personas',
       esReal: true,
     },
@@ -113,7 +113,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/vacunas',
       detalle: 'Plan de inmunización conectado con MySQL',
       icono: Syringe,
-      contador: 'CRUD ACTIVO',
+      contador: 'CRUD Activo',
       origen: 'api/Vacuna',
       esReal: true,
     },
@@ -122,7 +122,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/medicamentos',
       detalle: 'Vademécum veterinario conectado con MySQL',
       icono: Pill,
-      contador: 'CRUD ACTIVO',
+      contador: 'CRUD Activo',
       origen: 'api/Medicamento',
       esReal: true,
     },
@@ -131,7 +131,7 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/razas',
       detalle: 'Clasificación canina y felina por especie',
       icono: Sparkles,
-      contador: 'FILTRO ESPECIE',
+      contador: 'Filtro Especie',
       origen: 'api/Raza',
       esReal: true,
     },
@@ -139,19 +139,19 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* 1. Chasis Operativo con Banco de Contadores de Laboratorio */}
-      <div className="counter-chassis border-2 border-[#1C1917] overflow-hidden">
-        <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#44403C]">
+      {/* 1. Cabecera Operativa Moderna con Cinta de Indicadores Claros */}
+      <div className="surface-layered rounded-3xl overflow-hidden">
+        <div className="p-6 sm:p-7 bg-[#0F172A] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2
-              className="text-xl sm:text-2xl font-black text-[#FAF8F5] uppercase tracking-tight"
+              className="text-xl sm:text-2xl font-black text-white tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Tablero de Guardia · Patitas Calchaquíes
+              Centro Operativo de Guardia · Patitas Calchaquíes
             </h2>
-            <p className="text-sm text-[#D6CEC2]">
+            <p className="text-xs sm:text-sm text-[#CBD5E1]">
               {session
-                ? `OPERADOR EN TURNO: ${session.usuario.user.toUpperCase()} (${session.rol.nombre.toUpperCase()}) · PUESTO RUTA 40`
+                ? `Operador en turno: ${session.usuario.user} (${session.rol.nombre}) · Puesto Ruta 40`
                 : 'Gestión diaria de censo, sanidad veterinaria y solicitudes de adopción.'}
             </p>
           </div>
@@ -159,11 +159,11 @@ export const HomePage: React.FC = () => {
           <div className="flex items-center gap-2.5 flex-wrap">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 px-3.5 min-h-[38px] text-xs font-bold uppercase tracking-wider text-[#FAF8F5] bg-[#292524] hover:bg-[#44403C] border border-[#57534E] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 min-h-[38px] rounded-xl text-xs font-bold text-white bg-[#1E293B] hover:bg-[#334155] border border-[#334155] transition-colors"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              <span>Fichero Público</span>
-              <ExternalLink className="w-3.5 h-3.5 text-[#F4A261]" />
+              <span>Landing Pública</span>
+              <ExternalLink className="w-3.5 h-3.5 text-[#FB923C]" />
             </Link>
             <Button
               variant="secondary"
@@ -184,41 +184,33 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Banco de Contadores en Chasis Pizarra */}
-        <dl className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#44403C]">
-          <div className="counter-tube p-4 sm:px-6 flex items-baseline justify-between gap-2">
-            <dt className="font-mono text-xs uppercase tracking-wider text-[#D6CEC2]">
-              CENSO ACTIVO
-            </dt>
-            <dd className="font-mono text-2xl sm:text-3xl font-bold text-[#FAF8F5] tabular-data">
-              {isLoading ? '—' : String(animales.length).padStart(2, '0')}
+        {/* Cinta tabular de indicadores en Blanco Titanio para lectura rápida del trabajador */}
+        <dl className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E2E8F0] bg-white">
+          <div className="p-4 sm:px-6 flex items-baseline justify-between gap-2">
+            <dt className="text-xs font-bold text-[#475569]">Censo en guardia</dt>
+            <dd className="text-2xl font-black text-[#0F172A] tabular-data">
+              {isLoading ? '—' : animales.length}
             </dd>
           </div>
 
-          <div className="counter-tube p-4 sm:px-6 flex items-baseline justify-between gap-2">
-            <dt className="font-mono text-xs uppercase tracking-wider text-[#D6CEC2]">
-              APTOS ADOPCIÓN
-            </dt>
-            <dd className="font-mono text-2xl sm:text-3xl font-bold text-[#52B788] tabular-data">
-              {isLoading ? '—' : String(disponiblesCount).padStart(2, '0')}
+          <div className="p-4 sm:px-6 flex items-baseline justify-between gap-2">
+            <dt className="text-xs font-bold text-[#475569]">Aptos adopción</dt>
+            <dd className="text-2xl font-black text-[#059669] tabular-data">
+              {isLoading ? '—' : disponiblesCount}
             </dd>
           </div>
 
-          <div className="counter-tube p-4 sm:px-6 flex items-baseline justify-between gap-2">
-            <dt className="font-mono text-xs uppercase tracking-wider text-[#D6CEC2]">
-              EN TRATAMIENTO
-            </dt>
-            <dd className="font-mono text-2xl sm:text-3xl font-bold text-[#F4A261] tabular-data">
-              {isLoading ? '—' : String(enTratamientoCount).padStart(2, '0')}
+          <div className="p-4 sm:px-6 flex items-baseline justify-between gap-2">
+            <dt className="text-xs font-bold text-[#475569]">En tratamiento</dt>
+            <dd className="text-2xl font-black text-[#F97316] tabular-data">
+              {isLoading ? '—' : enTratamientoCount}
             </dd>
           </div>
 
-          <div className="counter-tube p-4 sm:px-6 flex items-baseline justify-between gap-2">
-            <dt className="font-mono text-xs uppercase tracking-wider text-[#D6CEC2]">
-              POR EVALUAR
-            </dt>
-            <dd className="font-mono text-2xl sm:text-3xl font-bold text-[#FAF8F5] tabular-data">
-              {isLoading ? '—' : String(solicitudesPendientes.length).padStart(2, '0')}
+          <div className="p-4 sm:px-6 flex items-baseline justify-between gap-2">
+            <dt className="text-xs font-bold text-[#475569]">Postulaciones web</dt>
+            <dd className="text-2xl font-black text-[#2563EB] tabular-data">
+              {isLoading ? '—' : solicitudesPendientes.length}
             </dd>
           </div>
         </dl>
@@ -229,17 +221,17 @@ export const HomePage: React.FC = () => {
         {/* Columna Izquierda (7 cols): Bandeja de Adopciones Recientes + Ocupación de Sectores */}
         <div className="lg:col-span-7 space-y-8">
           {/* Bandeja de postulaciones pendientes */}
-          <section className="bg-white border-2 border-[#1C1917] overflow-hidden">
-            <div className="p-5 bg-[#F2ECE1] border-b-2 border-[#1C1917] flex items-center justify-between gap-2">
+          <section className="surface-layered rounded-2xl overflow-hidden">
+            <div className="p-5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between gap-2">
               <div>
                 <h3
-                  className="font-black text-base text-[#1C1917] uppercase tracking-tight"
+                  className="font-black text-base text-[#0F172A] tracking-tight"
                   style={{ fontFamily: 'var(--font-display)' }}
                 >
                   Postulaciones de Adopción Pendientes
                 </h3>
-                <p className="text-xs sm:text-sm text-[#44403C]">
-                  Incluye las planillas #02 enviadas desde el fichero público (`/`).
+                <p className="text-xs sm:text-sm text-[#475569]">
+                  Incluye las solicitudes enviadas desde la Estación 3 de la Landing Pública (`/`).
                 </p>
               </div>
               <Badge variant={solicitudesPendientes.length > 0 ? 'warning' : 'neutral'} dot>
@@ -253,33 +245,31 @@ export const HomePage: React.FC = () => {
                 <Skeleton className="h-14 w-full" />
               </div>
             ) : solicitudesPendientes.length === 0 ? (
-              <div className="p-6 text-sm text-[#44403C]">
+              <div className="p-6 text-sm text-[#475569]">
                 No hay solicitudes pendientes de revisión en este momento.
               </div>
             ) : (
-              <div className="divide-y-2 divide-[#1C1917]">
+              <div className="divide-y divide-[#E2E8F0]">
                 {solicitudesPendientes.slice(0, 4).map((sol) => (
                   <div
                     key={sol.idSolicitudAdopcion}
-                    className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors"
+                    className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F8FAFC] transition-colors"
                   >
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-base text-[#1C1917]">
+                        <span className="font-bold text-base text-[#0F172A]">
                           {sol.personaNombre || `Postulante #${sol.idPersona}`}
                         </span>
-                        <span className="text-xs font-bold uppercase text-[#57534E]">
-                          solicita a
-                        </span>
-                        <span className="font-bold text-base text-[#B84A27]">
+                        <span className="text-xs font-medium text-[#64748B]">solicita a</span>
+                        <span className="font-bold text-base text-[#2563EB]">
                           {sol.animalNombre || `Animal #${sol.idAnimal}`}
                         </span>
-                        <span className="text-xs font-mono font-bold text-[#44403C] tabular-data">
-                          [{sol.fecha}]
+                        <span className="text-xs font-mono font-bold text-[#475569] tabular-data">
+                          ({sol.fecha})
                         </span>
                       </div>
                       {sol.observacion && (
-                        <p className="text-sm text-[#44403C] line-clamp-1">
+                        <p className="text-sm text-[#475569] line-clamp-1">
                           {sol.observacion}
                         </p>
                       )}
@@ -300,17 +290,17 @@ export const HomePage: React.FC = () => {
           </section>
 
           {/* Ocupación de Sectores y Alojamiento (Predio.cs + Sector.cs + Alojamiento_Animal.cs) */}
-          <section className="bg-white border-2 border-[#1C1917] overflow-hidden">
-            <div className="p-5 bg-[#F2ECE1] border-b-2 border-[#1C1917] flex items-center justify-between gap-2">
+          <section className="surface-layered rounded-2xl overflow-hidden">
+            <div className="p-5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between gap-2">
               <div>
                 <h3
-                  className="font-black text-base text-[#1C1917] uppercase tracking-tight flex items-center gap-2"
+                  className="font-black text-base text-[#0F172A] tracking-tight flex items-center gap-2"
                   style={{ fontFamily: 'var(--font-display)' }}
                 >
-                  <Building2 className="w-4 h-4 text-[#B84A27]" />
+                  <Building2 className="w-4 h-4 text-[#2563EB]" />
                   <span>Capacidad y Alojamiento por Sector</span>
                 </h3>
-                <p className="text-xs sm:text-sm text-[#44403C]">
+                <p className="text-xs sm:text-sm text-[#475569]">
                   Distribución física según <code className="font-mono font-bold">Predio.cs</code>,{' '}
                   <code className="font-mono font-bold">Sector.cs</code> y{' '}
                   <code className="font-mono font-bold">Alojamiento_Animal.cs</code>.
@@ -318,7 +308,7 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="divide-y-2 divide-[#1C1917]">
+            <div className="divide-y divide-[#E2E8F0]">
               {sectores.map((sec) => {
                 const animalesEnSector = animales.filter(
                   (a) => a.idEstado !== 3 && a.alojamiento?.idSector === sec.idSector
@@ -333,18 +323,18 @@ export const HomePage: React.FC = () => {
                     <div className="flex items-center justify-between gap-2">
                       <div>
                         <h4
-                          className="font-black text-sm uppercase text-[#1C1917]"
+                          className="font-bold text-sm text-[#0F172A]"
                           style={{ fontFamily: 'var(--font-display)' }}
                         >
                           {sec.nombre}
                         </h4>
-                        <p className="text-xs text-[#44403C] flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3.5 h-3.5 text-[#B84A27]" />
+                        <p className="text-xs text-[#475569] flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3.5 h-3.5 text-[#F97316]" />
                           <span>{sec.predioNombre}</span>
                         </p>
                       </div>
-                      <span className="text-xs font-mono font-bold text-[#1C1917] tabular-data">
-                        {animalesEnSector.length} / {sec.capacidad} PLAZAS ({porcentaje}%)
+                      <span className="text-xs font-mono font-bold text-[#0F172A] tabular-data">
+                        {animalesEnSector.length} / {sec.capacidad} plazas ({porcentaje}%)
                       </span>
                     </div>
 
@@ -353,11 +343,11 @@ export const HomePage: React.FC = () => {
                         {animalesEnSector.map((a) => (
                           <span
                             key={a.idAnimal}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#F2ECE1] text-[#1C1917] text-xs font-bold tabular-data"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F1F5F9] text-[#0F172A] text-xs font-bold tabular-data"
                           >
                             <span>{a.nombre}</span>
-                            <span className="text-[#44403C] font-mono text-[11px]">
-                              [{a.codigoIdentificacion}]
+                            <span className="text-[#2563EB] font-mono text-[11px]">
+                              ({a.codigoIdentificacion})
                             </span>
                           </span>
                         ))}
@@ -371,20 +361,20 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* Columna Derecha (5 cols): Directorio de Módulos y Estado de Integración API C# */}
-        <aside className="lg:col-span-5 bg-white border-2 border-[#1C1917] overflow-hidden">
-          <div className="p-5 bg-[#F2ECE1] border-b-2 border-[#1C1917]">
+        <aside className="lg:col-span-5 surface-layered rounded-2xl overflow-hidden">
+          <div className="p-5 bg-[#F8FAFC] border-b border-[#E2E8F0]">
             <h3
-              className="font-black text-base text-[#1C1917] uppercase tracking-tight"
+              className="font-black text-base text-[#0F172A] tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               Módulos y Endpoints del Sistema
             </h3>
-            <p className="text-xs sm:text-sm text-[#44403C] mt-0.5">
+            <p className="text-xs sm:text-sm text-[#475569] mt-0.5">
               Acceso directo a las 7 áreas operativas y estado de conexión con tu backend C#.
             </p>
           </div>
 
-          <div className="divide-y-2 divide-[#1C1917]">
+          <div className="divide-y divide-[#E2E8F0]">
             {modulosOperativos.map((mod) => {
               const Icon = mod.icono;
               return (
@@ -392,32 +382,32 @@ export const HomePage: React.FC = () => {
                   key={mod.ruta}
                   type="button"
                   onClick={() => navigate(mod.ruta)}
-                  className="w-full p-4 sm:px-5 text-left hover:bg-[#FAF8F5] transition-colors flex items-center justify-between gap-3 cursor-pointer"
+                  className="w-full p-4 sm:px-5 text-left hover:bg-[#F8FAFC] transition-colors flex items-center justify-between gap-3 cursor-pointer"
                 >
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-9 h-9 bg-[#1C1917] text-[#FAF8F5] flex items-center justify-center shrink-0 mt-0.5">
-                      <Icon className="w-4 h-4 text-[#F4A261]" />
+                    <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-base text-[#1C1917]">
+                        <span className="font-bold text-base text-[#0F172A]">
                           {mod.nombre}
                         </span>
                         <Badge variant={mod.esReal ? 'success' : 'info'}>
                           {mod.origen}
                         </Badge>
                       </div>
-                      <p className="text-xs sm:text-sm text-[#44403C] truncate mt-0.5">
+                      <p className="text-xs sm:text-sm text-[#475569] truncate mt-0.5">
                         {mod.detalle}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-mono font-bold text-[#1C1917] tabular-data hidden sm:inline">
+                    <span className="text-xs font-mono font-bold text-[#334155] tabular-data hidden sm:inline">
                       {mod.contador}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-[#1C1917]" />
+                    <ArrowRight className="w-4 h-4 text-[#64748B]" />
                   </div>
                 </button>
               );

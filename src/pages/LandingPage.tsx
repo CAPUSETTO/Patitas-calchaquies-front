@@ -1,237 +1,219 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   PawPrint,
   HeartHandshake,
   ShieldCheck,
   MapPin,
-  CheckCircle2,
   Search,
-  KeyRound,
+  CheckCircle2,
   ArrowRight,
-  Calendar,
   Stethoscope,
+  Sparkles,
+  Scale,
+  Compass,
   Utensils,
-  Building2,
-  Phone,
-  FolderOpen,
 } from 'lucide-react';
-import { Button, Input, Badge, Skeleton, ErrorAlert } from '../components/ui';
+import { Button, Input, Badge, ErrorAlert } from '../components/ui';
 import { animalService } from '../services/animalService';
-import { adopcionService } from '../services/adopcionService';
 import { personaService } from '../services/personaService';
+import { adopcionService } from '../services/adopcionService';
 import { authService } from '../services/authService';
-import type { AnimalDto } from '../types/animal.types';
+import type { AnimalDto, SectorDto } from '../types/animal.types';
+
+type FiltroCat = 'todos' | 'perros' | 'gatos' | `sector-${number}`;
 
 export const LandingPage: React.FC = () => {
   const session = authService.getCurrentSession();
-  const sectores = animalService.getSectores();
-  const veterinarios = animalService.getVeterinarios();
+  const sectores: SectorDto[] = animalService.getSectores();
 
   const [animales, setAnimales] = useState<AnimalDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [animalDestacadoId, setAnimalDestacadoId] = useState<number | null>(null);
-  const [filtroEspecie, setFiltroEspecie] = useState<'todos' | 1 | 2>('todos');
-  const [filtroSectorId, setFiltroSectorId] = useState<number | 'todos'>('todos');
+  const [filtroActivo, setFiltroActivo] = useState<FiltroCat>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
+  const [animalSeleccionado, setAnimalSeleccionado] = useState<AnimalDto | null>(null);
 
-  // Estado de la Planilla de Postulación Directa (Persona.cs + Solicitud_Adopcion.cs)
-  const [animalPostulacionId, setAnimalPostulacionId] = useState<number>(1);
-  const [nombre, setNombre] = useState<string>('');
-  const [apellido, setApellido] = useState<string>('');
-  const [dni, setDni] = useState<string>('');
-  const [telefono, setTelefono] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [localidad, setLocalidad] = useState<string>('Cafayate');
-  const [direccion, setDireccion] = useState<string>('');
-  const [observacion, setObservacion] = useState<string>('');
+  // Estado de progreso de scroll para el Hilo de Ruta 40 y paralaje suave
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [heroOffset, setHeroOffset] = useState<number>(0);
+  const catalogoRef = useRef<HTMLElement | null>(null);
+
+  // Estado del formulario de adopción
+  const [nombrePostulante, setNombrePostulante] = useState<string>('');
+  const [dniPostulante, setDniPostulante] = useState<string>('');
+  const [telefonoPostulante, setTelefonoPostulante] = useState<string>('');
+  const [localidadPostulante, setLocalidadPostulante] = useState<string>('Cafayate');
+  const [motivoAdopcion, setMotivoAdopcion] = useState<string>('');
   const [enviandoSolicitud, setEnviandoSolicitud] = useState<boolean>(false);
-  const [errorPostulacion, setErrorPostulacion] = useState<string | null>(null);
+  const [errorFormulario, setErrorFormulario] = useState<string | null>(null);
   const [solicitudExitosa, setSolicitudExitosa] = useState<{
     animalNombre: string;
-    codigoSeguimiento: number;
-    sincronizadoMySql: boolean;
+    postulante: string;
   } | null>(null);
 
   useEffect(() => {
     let montado = true;
-    const cargarAnimales = async () => {
-      setIsLoading(true);
+    const cargarCenso = async () => {
       try {
         const data = await animalService.getAll();
         if (montado) {
           setAnimales(data);
-          const primerDisponible = data.find((a) => a.idEstado === 1) || data[0];
-          if (primerDisponible) {
-            setAnimalDestacadoId(primerDisponible.idAnimal);
-            setAnimalPostulacionId(primerDisponible.idAnimal);
-          }
+          const primeroDisponible = data.find((a) => a.idEstado === 1) ?? data[0] ?? null;
+          setAnimalSeleccionado(primeroDisponible);
         }
       } finally {
         if (montado) setIsLoading(false);
       }
     };
-
-    void cargarAnimales();
+    void cargarCenso();
     return () => {
       montado = false;
     };
   }, []);
 
-  const animalesPostulables = animales.filter((a) => a.idEstado !== 3);
+  // Efecto de Scroll para trazar el Hilo de Ruta 40 y desplazar sutilmente las capas del Hero
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const pct = docHeight > 0 ? Math.min(100, Math.max(0, (scrollTop / docHeight) * 100)) : 0;
+      setScrollProgress(pct);
+      setHeroOffset(Math.min(40, scrollTop * 0.08));
+    };
 
-  const animalesFiltrados = animalesPostulables.filter((animal) => {
-    const coincideEspecie =
-      filtroEspecie === 'todos' ? true : animal.idEspecie === filtroEspecie;
-    const coincideSector =
-      filtroSectorId === 'todos'
-        ? true
-        : animal.alojamiento?.idSector === filtroSectorId;
-    const q = busqueda.trim().toLowerCase();
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // IntersectionObserver para activar las revelaciones .scroll-reveal al hacer scroll
+  useEffect(() => {
+    const elements = document.querySelectorAll('.scroll-reveal');
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [animales, filtroActivo, busqueda]);
+
+  // Censo activo (Disponibles = 1 y En Tratamiento = 2)
+  const animalesEnGuardia = animales.filter((a) => a.idEstado !== 3);
+  const listosCount = animalesEnGuardia.filter((a) => a.idEstado === 1).length;
+  const enTratamientoCount = animalesEnGuardia.filter((a) => a.idEstado === 2).length;
+
+  const animalesFiltrados = animalesEnGuardia.filter((animal) => {
+    const coincideCategoria =
+      filtroActivo === 'todos' ||
+      (filtroActivo === 'perros' && animal.idEspecie === 1) ||
+      (filtroActivo === 'gatos' && animal.idEspecie === 2) ||
+      (filtroActivo.startsWith('sector-') &&
+        animal.alojamiento?.idSector === Number(filtroActivo.replace('sector-', '')));
+
+    const termino = busqueda.trim().toLowerCase();
     const coincideTexto =
-      !q ||
-      animal.nombre.toLowerCase().includes(q) ||
-      (animal.razaNombre && animal.razaNombre.toLowerCase().includes(q)) ||
-      animal.codigoIdentificacion.toLowerCase().includes(q) ||
-      (animal.ingreso?.lugarOrigen &&
-        animal.ingreso.lugarOrigen.toLowerCase().includes(q)) ||
-      (animal.observaciones && animal.observaciones.toLowerCase().includes(q));
+      termino === '' ||
+      animal.nombre.toLowerCase().includes(termino) ||
+      animal.codigoIdentificacion.toLowerCase().includes(termino) ||
+      (animal.razaNombre ?? '').toLowerCase().includes(termino) ||
+      (animal.ingreso?.lugarOrigen ?? '').toLowerCase().includes(termino);
 
-    return coincideEspecie && coincideSector && coincideTexto;
+    return coincideCategoria && coincideTexto;
   });
 
-  const animalDestacado =
-    animalesFiltrados.find((a) => a.idAnimal === animalDestacadoId) ||
-    animalesPostulables.find((a) => a.idAnimal === animalDestacadoId) ||
-    animalesFiltrados[0] ||
-    animalesPostulables[0] ||
-    null;
+  const expedienteActivo =
+    animalSeleccionado &&
+    animalesFiltrados.some((a) => a.idAnimal === animalSeleccionado.idAnimal)
+      ? animalSeleccionado
+      : animalesFiltrados[0] ?? animalesEnGuardia[0] ?? null;
 
-  const animalEnFormulario =
-    animalesPostulables.find((a) => a.idAnimal === animalPostulacionId) ||
-    animalDestacado ||
-    null;
-
-  const capacidadTotalPlazas = sectores.reduce((acc, s) => acc + s.capacidad, 0);
-  const listosAdopcionCount = animalesPostulables.filter((a) => a.idEstado === 1).length;
-  const esterilizadosCount = animales.filter((a) => a.castrado).length;
-
-  const formatearContador = (n: number) => String(n).padStart(2, '0');
-
-  const handleSeleccionarSectorTab = (idSector: number | 'todos') => {
-    setFiltroSectorId(idSector);
-    const candidatos = animalesPostulables.filter((a) =>
-      idSector === 'todos' ? true : a.alojamiento?.idSector === idSector
-    );
-    if (candidatos.length > 0) {
-      setAnimalDestacadoId(candidatos[0].idAnimal);
-    }
-  };
-
-  const seleccionarParaAdoptar = (animal: AnimalDto) => {
-    setAnimalPostulacionId(animal.idAnimal);
-    setAnimalDestacadoId(animal.idAnimal);
-    setErrorPostulacion(null);
+  const iniciarPostulacion = (animal: AnimalDto) => {
+    setAnimalSeleccionado(animal);
     setSolicitudExitosa(null);
-    const seccion = document.getElementById('postulacion-directa');
-    if (seccion) {
-      seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setErrorFormulario(null);
+    const formEl = document.getElementById('estacion-adopcion');
+    if (formEl) {
+      formEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  const handleEnviarSolicitudPublica = async (e: React.FormEvent) => {
+  const handleEnviarPostulacion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!animalEnFormulario) return;
+    if (!expedienteActivo) {
+      setErrorFormulario('Selecciona un animal del catálogo antes de enviar tu postulación.');
+      return;
+    }
 
-    const cleanNombre = nombre.trim();
-    const cleanApellido = apellido.trim();
-    const cleanDni = dni.trim();
-    const cleanTelefono = telefono.trim();
-    const cleanDireccion = direccion.trim();
+    const nombreLimpio = nombrePostulante.trim();
+    const dniLimpio = dniPostulante.trim();
+    const telefonoLimpio = telefonoPostulante.trim();
 
-    if (!cleanNombre || !cleanApellido) {
-      setErrorPostulacion('Ingresa tu nombre y apellido tal como figuran en tu documento.');
-      return;
-    }
-    if (!/^\d{7,8}$/.test(cleanDni)) {
-      setErrorPostulacion(
-        'El DNI debe contener entre 7 y 8 dígitos numéricos sin puntos (regla de PersonaCreateValidator.cs).'
-      );
-      return;
-    }
-    if (!/^\+?\d{6,15}$/.test(cleanTelefono.replace(/\s+/g, ''))) {
-      setErrorPostulacion('Ingresa un teléfono válido de solo dígitos (opcional prefijo +).');
-      return;
-    }
-    if (!cleanDireccion) {
-      setErrorPostulacion(
-        'Indica tu domicilio o referencia en el valle para la visita de seguimiento.'
-      );
+    if (!nombreLimpio || !dniLimpio || !telefonoLimpio) {
+      setErrorFormulario('Por favor completa tu nombre completo, DNI y teléfono de contacto.');
       return;
     }
 
     setEnviandoSolicitud(true);
-    setErrorPostulacion(null);
+    setErrorFormulario(null);
 
     try {
-      let idPersonaRegistrada = Date.now() % 10000;
-      let sincronizadoMySql = false;
-      const direccionCompleta = `${cleanDireccion} (${localidad})`;
-
+      let idPersonaAdoptante = 1;
       try {
-        const personaCreada = await personaService.crear({
-          nombre: cleanNombre,
-          apellido: cleanApellido,
-          dni: cleanDni,
-          telefono: cleanTelefono.replace(/\s+/g, ''),
-          email: email.trim() || undefined,
-          direccion: direccionCompleta,
+        const partes = nombreLimpio.split(' ');
+        const nombrePila = partes[0] || nombreLimpio;
+        const apellidoPila = partes.slice(1).join(' ') || localidadPostulante;
+        const nuevaPersona = await personaService.crear({
+          nombre: nombrePila,
+          apellido: apellidoPila,
+          dni: dniLimpio,
+          telefono: telefonoLimpio,
+          direccion: localidadPostulante,
         });
-        if (personaCreada && personaCreada.idPersona) {
-          idPersonaRegistrada = personaCreada.idPersona;
-          sincronizadoMySql = true;
+        if (nuevaPersona && nuevaPersona.idPersona) {
+          idPersonaAdoptante = nuevaPersona.idPersona;
         }
       } catch {
-        // Continúa el registro en adopcionService aunque la API MySQL no esté activa
+        idPersonaAdoptante = Math.floor(Math.random() * 800) + 100;
       }
 
-      const observacionCompleta = `[Domicilio: ${direccionCompleta}] ${
-        observacion.trim() || 'Compromiso de adopción responsable y seguimiento veterinario.'
-      }`;
-
-      const creada = await adopcionService.crear(
+      await adopcionService.crear(
         {
-          idPersona: idPersonaRegistrada,
-          idAnimal: animalEnFormulario.idAnimal,
-          observacion: observacionCompleta,
+          idPersona: idPersonaAdoptante,
+          idAnimal: expedienteActivo.idAnimal,
+          observacion: `Postulación web (${localidadPostulante} · Tel: ${telefonoLimpio} · DNI: ${dniLimpio}). ${
+            motivoAdopcion.trim() ||
+            'Compromiso de adopción responsable y seguimiento veterinario.'
+          }`,
         },
         {
-          personaNombre: `${cleanNombre} ${cleanApellido}`,
-          personaDni: cleanDni,
-          personaTelefono: cleanTelefono,
-          animalNombre: animalEnFormulario.nombre,
-          animalCodigo: animalEnFormulario.codigoIdentificacion,
+          personaNombre: nombreLimpio,
+          personaDni: dniLimpio,
+          personaTelefono: telefonoLimpio,
+          animalNombre: expedienteActivo.nombre,
+          animalCodigo: expedienteActivo.codigoIdentificacion,
         }
       );
 
       setSolicitudExitosa({
-        animalNombre: animalEnFormulario.nombre,
-        codigoSeguimiento: creada.idSolicitudAdopcion,
-        sincronizadoMySql,
+        animalNombre: expedienteActivo.nombre,
+        postulante: nombreLimpio,
       });
-
-      setNombre('');
-      setApellido('');
-      setDni('');
-      setTelefono('');
-      setEmail('');
-      setDireccion('');
-      setObservacion('');
+      setMotivoAdopcion('');
     } catch (err) {
-      setErrorPostulacion(
+      setErrorFormulario(
         err instanceof Error
           ? err.message
-          : 'No pudimos registrar tu solicitud en este momento.'
+          : 'No pudimos registrar tu solicitud en este momento. Intenta nuevamente.'
       );
     } finally {
       setEnviandoSolicitud(false);
@@ -239,834 +221,862 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-field-grid text-[#1C1917] flex flex-col">
-      {/* 1. Chasis Superior Pizarra (#1C1917) con Identidad y Navegación Operativa */}
-      <header className="sticky top-0 z-30 bg-[#1C1917] text-[#FAF8F5] border-b-2 border-[#1C1917]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#F8FAFC] bg-modern-dots text-[#0F172A] flex flex-col">
+      {/* Barra Superior Flotante con Hilo de Progreso de Scroll */}
+      <header className="sticky top-0 z-40 bg-[#0F172A]/95 backdrop-blur-md text-white border-b border-[#1E293B]">
+        {/* Hilo luminoso de progreso impulsado por el scroll */}
+        <div className="h-1 w-full bg-[#1E293B] overflow-hidden">
+          <div
+            className="h-full bg-[#F97316] transition-all duration-150 ease-out"
+            style={{ width: `${scrollProgress}%` }}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-sm bg-[#B84A27] text-white border border-[#FAF8F5]/30 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-[0_4px_14px_rgba(37,99,235,0.45)]">
               <PawPrint className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div className="min-w-0">
               <span
-                className="font-extrabold text-base sm:text-lg text-[#FAF8F5] block leading-none truncate"
+                className="font-black text-base sm:text-lg tracking-tight block leading-none truncate"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                PATITAS CALCHAQUÍES
+                Patitas Calchaquíes
               </span>
-              <span className="text-xs text-stone-300 font-mono block leading-tight truncate mt-1 tabular-data">
-                RN 40 KM 4340 · CAFAYATE / SAN CARLOS
+              <span className="font-mono text-[11px] text-[#94A3B8] block mt-1 truncate">
+                RUTA 40 · CAFAYATE · SAN CARLOS · AMAICHA
               </span>
             </div>
           </div>
 
+          {/* Estaciones del Hilo de Custodia en vivo */}
           <nav
-            aria-label="Secciones del fichero"
-            className="hidden lg:flex items-center gap-6 text-sm font-bold text-stone-200"
+            aria-label="Estaciones de recorrido"
+            className="hidden lg:flex items-center gap-6 text-xs font-bold text-[#CBD5E1]"
           >
-            <a href="#fichero-censo" className="hover:text-[#F59E0B] tab-snap">
-              1. Fichero de Censo
+            <a
+              href="#inicio-ruta"
+              className={`inline-flex items-center gap-2 transition-colors hover:text-white ${
+                scrollProgress < 30 ? 'text-[#60A5FA]' : ''
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+              <span>Estación 1 · Origen Ruta 40</span>
             </a>
-            <a href="#postulacion-directa" className="hover:text-[#F59E0B] tab-snap">
-              2. Planilla de Adopción
+            <a
+              href="#catalogo-hilo"
+              className={`inline-flex items-center gap-2 transition-colors hover:text-white ${
+                scrollProgress >= 30 && scrollProgress < 72 ? 'text-[#FB923C]' : ''
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+              <span>Estación 2 · Expedientes Vivos ({animalesEnGuardia.length})</span>
             </a>
-            <a href="#infraestructura-valles" className="hover:text-[#F59E0B] tab-snap">
-              3. Guardia y Sectores
+            <a
+              href="#estacion-adopcion"
+              className={`inline-flex items-center gap-2 transition-colors hover:text-white ${
+                scrollProgress >= 72 ? 'text-[#34D399]' : ''
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+              <span>Estación 3 · Adopción Directa</span>
             </a>
           </nav>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {session ? (
-              <Link
-                to="/admin"
-                className="inline-flex items-center gap-2 px-3.5 min-h-[40px] rounded-sm text-xs sm:text-sm font-bold text-[#1C1917] bg-[#F59E0B] hover:bg-amber-400 border border-[#FAF8F5] tab-snap"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>PANEL ({session.usuario.user})</span>
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 px-3.5 min-h-[40px] rounded-sm text-xs sm:text-sm font-bold text-[#FAF8F5] bg-[#292524] hover:bg-[#B84A27] border border-stone-600 tab-snap"
-              >
-                <KeyRound className="w-4 h-4 text-[#F59E0B]" />
-                <span>ACCESO PERSONAL</span>
-              </Link>
-            )}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <a
+              href="#estacion-adopcion"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 min-h-[38px] rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white text-xs font-bold transition-colors shadow-[0_6px_16px_-4px_rgba(249,115,22,0.45)]"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              <HeartHandshake className="w-3.5 h-3.5" />
+              <span>Adoptar</span>
+            </a>
+
+            <Link
+              to={session ? '/admin' : '/login'}
+              className="inline-flex items-center gap-2 px-3.5 min-h-[38px] rounded-xl bg-[#1E293B] hover:bg-[#334155] text-white border border-[#334155] text-xs font-bold transition-colors"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              <ShieldCheck className="w-4 h-4 text-[#60A5FA]" />
+              <span>{session ? `Dashboard (${session.usuario.user})` : 'Acceso Trabajadores'}</span>
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* 2. Primer Viewport: Bloque de Chasis con Contadores + Fichero Clínico de Pestañas Escalonadas */}
-      <main id="fichero-censo" className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-8">
-        {/* Bloque de Apertura y Banco de Contadores sobre Chasis Pizarra */}
-        <section className="border-2 border-[#1C1917] bg-white overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-[#1C1917]">
-            {/* Tesis operativa de alta legibilidad (7 cols) */}
-            <div className="lg:col-span-7 p-5 sm:p-7 space-y-3 bg-[#FAF8F5]">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#1C1917] leading-[1.12]">
-                Registro Público de Rescate, Sanidad y Adopción en los Valles Calchaquíes
+      {/* ESTACIÓN 1: Hero Inmersivo Nocturno con Capas Vibrantes en Paralaje Suave */}
+      <section
+        id="inicio-ruta"
+        className="relative overflow-hidden bg-[#0F172A] text-white border-b border-[#1E293B]"
+      >
+        {/* Halos cromáticos suaves de fondo (Cobalto y Coral) que responden al scroll */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[#2563EB]/20 blur-3xl"
+          style={{ transform: `translate3d(0, ${heroOffset * 0.8}px, 0)` }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-12 right-0 w-96 h-96 rounded-full bg-[#F97316]/15 blur-3xl"
+          style={{ transform: `translate3d(0, -${heroOffset * 0.6}px, 0)` }}
+        />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Columna Izquierda (7 cols): Narrativa, Hilo de Ruta 40 y Acciones */}
+            <div className="lg:col-span-7 space-y-6">
+              <h1
+                className="text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-white leading-[1.06]"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Cada rescate en la Ruta 40 tiene historia clínica, nombre y destino.
               </h1>
-              <p className="text-base text-stone-800 leading-relaxed max-w-[66ch]">
-                Cada animal ingresado desde la Ruta Nacional 40 o parajes rurales cuenta con expediente clínico auditable, sector asignado, ración medida en gramos y certificación veterinaria. Selecciona una pestaña de sector o toca una ficha para inspeccionar su hoja clínica e iniciar la adopción.
+
+              <p className="text-base sm:text-lg text-[#CBD5E1] max-w-2xl leading-relaxed">
+                Sigue el hilo de custodia desde el kilómetro exacto del hallazgo en Cafayate,
+                Amaicha del Valle, Cachi o Molinos hasta su alta veterinaria. Sin trámites
+                ocultos: explora su ficha real y postúlate para adoptar en un solo recorrido.
+              </p>
+
+              {/* Cinta horizontal de los 3 eslabones del Hilo de Custodia */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] rounded-2xl bg-[#1E293B]/75 border border-[#334155]">
+                <div className="p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#60A5FA]">
+                      KILÓMETRO CERO
+                    </span>
+                    <Compass className="w-4 h-4 text-[#60A5FA]" />
+                  </div>
+                  <p className="font-bold text-sm text-white">Rescate Georreferenciado</p>
+                  <p className="text-xs text-[#94A3B8]">
+                    Registro directo en <code className="font-mono">Ingreso_Animal.cs</code>
+                  </p>
+                </div>
+
+                <div className="p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#34D399]">
+                      ALTA SANITARIA
+                    </span>
+                    <Stethoscope className="w-4 h-4 text-[#34D399]" />
+                  </div>
+                  <p className="font-bold text-sm text-white">
+                    {listosCount} Listos · {enTratamientoCount} en Guardia
+                  </p>
+                  <p className="text-xs text-[#94A3B8]">
+                    Avalado con matrícula en <code className="font-mono">Esterilizacion.cs</code>
+                  </p>
+                </div>
+
+                <div className="p-4 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-[#FB923C]">
+                      HOGAR DEFINITIVO
+                    </span>
+                    <HeartHandshake className="w-4 h-4 text-[#FB923C]" />
+                  </div>
+                  <p className="font-bold text-sm text-white">Adopción Directa</p>
+                  <p className="text-xs text-[#94A3B8]">
+                    Sincronizada con el panel de trabajadores
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3.5 pt-2">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => {
+                    catalogoRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  rightIcon={<ArrowRight className="w-5 h-5" />}
+                >
+                  Explorar el Hilo de Rescatados ({animalesEnGuardia.length})
+                </Button>
+
+                {expedienteActivo && (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => iniciarPostulacion(expedienteActivo)}
+                    leftIcon={<HeartHandshake className="w-5 h-5" />}
+                  >
+                    Adoptar a {expedienteActivo.nombre}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Columna Derecha (5 cols): Escaparate en Capas Riso con Paralaje Suave */}
+            <div
+              className="lg:col-span-5"
+              style={{ transform: `translate3d(0, -${heroOffset * 0.35}px, 0)` }}
+            >
+              {expedienteActivo && (
+                <div className="riso-frame rounded-3xl bg-[#1E293B] border border-[#334155] overflow-hidden shadow-[0_24px_54px_-16px_rgba(0,0,0,0.55)]">
+                  <div className="relative h-64 sm:h-72 bg-[#0F172A] overflow-hidden">
+                    {expedienteActivo.fotoUrl ? (
+                      <img
+                        src={expedienteActivo.fotoUrl}
+                        alt={`Retrato de ${expedienteActivo.nombre}`}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#64748B]">
+                        <PawPrint className="w-12 h-12" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/25 to-transparent" />
+
+                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
+                      <span className="px-3 py-1 rounded-full bg-[#0F172A]/85 backdrop-blur-md text-xs font-mono font-bold text-[#60A5FA] border border-[#334155]">
+                        {expedienteActivo.codigoIdentificacion}
+                      </span>
+                      <Badge
+                        variant={expedienteActivo.idEstado === 1 ? 'success' : 'warning'}
+                        dot
+                      >
+                        {expedienteActivo.estadoNombre}
+                      </Badge>
+                    </div>
+
+                    <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-3">
+                      <div>
+                        <h2
+                          className="text-2xl sm:text-3xl font-black text-white tracking-tight"
+                          style={{ fontFamily: 'var(--font-display)' }}
+                        >
+                          {expedienteActivo.nombre}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#CBD5E1] font-medium">
+                          {expedienteActivo.idEspecie === 1 ? 'Canino' : 'Felino'} ·{' '}
+                          {expedienteActivo.razaNombre ?? 'Mestizo Calchaquí'} ·{' '}
+                          {expedienteActivo.idSexo === 2 ? 'Hembra' : 'Macho'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Trazabilidad resumida en 3 pasos */}
+                  <div className="p-5 space-y-4 bg-[#1E293B]">
+                    <div className="grid grid-cols-2 divide-x divide-[#334155] text-xs">
+                      <div className="pr-3 space-y-1">
+                        <span className="text-[#94A3B8] block font-medium">Hallazgo en Ruta</span>
+                        <span className="text-white font-bold block truncate">
+                          {expedienteActivo.ingreso?.lugarOrigen ?? 'Cafayate, Ruta 40'}
+                        </span>
+                      </div>
+                      <div className="pl-3 space-y-1">
+                        <span className="text-[#94A3B8] block font-medium">Sector Actual</span>
+                        <span className="text-[#60A5FA] font-bold block truncate">
+                          {expedienteActivo.alojamiento?.sectorNombre ?? 'Caniles Norte'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-[#334155] flex items-center justify-between gap-3">
+                      <span className="text-xs font-mono text-[#CBD5E1] tabular-data">
+                        {expedienteActivo.castrado && expedienteActivo.esterilizacion
+                          ? `Esterilizado · ${expedienteActivo.esterilizacion.veterinarioMatricula}`
+                          : 'En control veterinario'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => iniciarPostulacion(expedienteActivo)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FB923C] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <span>Postular ahora</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ESTACIÓN 2: El Hilo de Custodia en Scroll + Catálogo de Capas Vibrantes */}
+      <main
+        id="catalogo-hilo"
+        ref={catalogoRef}
+        className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-12"
+      >
+        {/* Cabecera de Filtros y Buscador Moderno */}
+        <div className="scroll-reveal surface-layered rounded-2xl p-5 sm:p-6 space-y-5">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h2
+                className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Expedientes en Guardia y Trazabilidad Clínica
+              </h2>
+              <p className="text-sm sm:text-base text-[#334155]">
+                Haz scroll o selecciona cualquier rescatado para inspeccionar su hilo completo de
+                origen, dieta diaria y alta quirúrgica.
               </p>
             </div>
 
-            {/* Banco de Contadores de Guardia (5 cols — Chasis Pizarra #1C1917) */}
-            <div className="lg:col-span-5 bg-[#1C1917] text-[#FAF8F5] p-5 sm:p-6 flex flex-col justify-between gap-4">
-              <div className="flex items-center justify-between border-b border-stone-700 pb-2.5">
-                <h2 className="text-xs font-bold tracking-wider text-stone-300">
-                  ESTADO DEL CENSO EN TIEMPO REAL
-                </h2>
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-400 tabular-data">
-                  <span className="w-2 h-2 bg-emerald-400 inline-block" />
-                  GUARDIA ACTIVA
-                </span>
-              </div>
-
-              <dl className="grid grid-cols-3 gap-3">
-                <div className="counter-tube p-3 rounded-sm">
-                  <dt className="text-[11px] font-bold text-stone-300">LISTOS HOGAR</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-[#34D399] mt-1 tabular-data">
-                    {isLoading ? '--' : formatearContador(listosAdopcionCount)}
-                  </dd>
-                </div>
-
-                <div className="counter-tube p-3 rounded-sm">
-                  <dt className="text-[11px] font-bold text-stone-300">CASTRADOS</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-[#F59E0B] mt-1 tabular-data">
-                    {isLoading ? '--' : formatearContador(esterilizadosCount)}
-                  </dd>
-                </div>
-
-                <div className="counter-tube p-3 rounded-sm">
-                  <dt className="text-[11px] font-bold text-stone-300">PLAZAS VALLE</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-[#FAF8F5] mt-1 tabular-data">
-                    {isLoading
-                      ? '--'
-                      : `${formatearContador(animalesPostulables.length)}/${capacidadTotalPlazas}`}
-                  </dd>
-                </div>
-              </dl>
+            {/* Buscador instantáneo */}
+            <div className="relative w-full lg:w-80 shrink-0">
+              <Search className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="search"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por nombre, raza, lugar o código..."
+                aria-label="Buscar animales en el fichero"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-sm font-medium text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB]"
+              />
             </div>
           </div>
-        </section>
 
-        {/* 3. Carpeta Maestra con Riel de Pestañas Escalonadas por Sector (Stepped Tab Board) */}
-        <section aria-label="Fichero clínico por sector">
-          {/* Riel de Pestañas Escalonadas en el borde superior */}
+          {/* Píldoras de filtro por Especie y Sector Físico */}
           <div
             role="tablist"
-            aria-label="Filtrar fichero por sector del refugio"
-            className="flex items-end gap-1.5 overflow-x-auto pb-0 pr-2"
+            aria-label="Filtrar por especie o sector del refugio"
+            className="flex items-center gap-2 overflow-x-auto pb-1"
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filtroSectorId === 'todos'}
-              onClick={() => handleSeleccionarSectorTab('todos')}
-              className={`px-4 py-2.5 border-t-2 border-x-2 border-[#1C1917] font-bold text-xs sm:text-sm whitespace-nowrap tab-snap cursor-pointer flex items-center gap-2 ${
-                filtroSectorId === 'todos'
-                  ? 'bg-[#B84A27] text-white min-h-[48px]'
-                  : 'bg-[#F3EFEA] text-[#1C1917] hover:bg-[#E5DFD7] min-h-[42px]'
-              }`}
-            >
-              <FolderOpen className="w-4 h-4 shrink-0" />
-              <span>TODOS LOS SECTORES</span>
-              <span
-                className={`px-1.5 py-0.5 text-xs font-mono tabular-data ${
-                  filtroSectorId === 'todos'
-                    ? 'bg-[#1C1917] text-white'
-                    : 'bg-white text-[#1C1917] border border-[#1C1917]'
-                }`}
-              >
-                {formatearContador(animalesPostulables.length)}
-              </span>
-            </button>
-
-            {sectores.map((sec, idx) => {
-              const count = animalesPostulables.filter(
-                (a) => a.alojamiento?.idSector === sec.idSector
-              ).length;
-              const activo = filtroSectorId === sec.idSector;
+            {[
+              { id: 'todos' as FiltroCat, label: `Todos (${animalesEnGuardia.length})` },
+              {
+                id: 'perros' as FiltroCat,
+                label: `Perros (${animalesEnGuardia.filter((a) => a.idEspecie === 1).length})`,
+              },
+              {
+                id: 'gatos' as FiltroCat,
+                label: `Gatos (${animalesEnGuardia.filter((a) => a.idEspecie === 2).length})`,
+              },
+              ...sectores.map((s) => ({
+                id: `sector-${s.idSector}` as FiltroCat,
+                label: `${s.nombre} (${
+                  animalesEnGuardia.filter((a) => a.alojamiento?.idSector === s.idSector).length
+                }/${s.capacidad})`,
+              })),
+            ].map((tab) => {
+              const activo = filtroActivo === tab.id;
               return (
                 <button
-                  key={sec.idSector}
-                  type="button"
+                  key={tab.id}
                   role="tab"
                   aria-selected={activo}
-                  onClick={() => handleSeleccionarSectorTab(sec.idSector)}
-                  className={`px-3.5 py-2.5 border-t-2 border-x-2 border-[#1C1917] font-bold text-xs sm:text-sm whitespace-nowrap tab-snap cursor-pointer flex items-center gap-2 ${
+                  type="button"
+                  onClick={() => setFiltroActivo(tab.id)}
+                  className={`px-4 min-h-[40px] rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                     activo
-                      ? 'bg-[#B84A27] text-white min-h-[48px]'
-                      : 'bg-[#F3EFEA] text-[#1C1917] hover:bg-[#E5DFD7] min-h-[42px]'
+                      ? 'bg-[#2563EB] text-white shadow-[0_6px_16px_-4px_rgba(37,99,235,0.4)]'
+                      : 'bg-[#F1F5F9] text-[#334155] hover:bg-[#E2E8F0] hover:text-[#0F172A]'
                   }`}
+                  style={{ fontFamily: 'var(--font-display)' }}
                 >
-                  <span className="font-mono text-xs opacity-80">0{idx + 1}</span>
-                  <span>{sec.nombre}</span>
-                  <span
-                    className={`px-1.5 py-0.5 text-xs font-mono tabular-data ${
-                      activo
-                        ? 'bg-[#1C1917] text-white'
-                        : 'bg-white text-[#1C1917] border border-[#1C1917]'
-                    }`}
-                  >
-                    {count}/{sec.capacidad}
-                  </span>
+                  {tab.label}
                 </button>
               );
             })}
           </div>
+        </div>
 
-          {/* Cuerpo de la Carpeta Abierta (Grilla Continua de 12 Columnas sin Tarjetas Anidadas) */}
-          <div className="border-2 border-[#1C1917] bg-white grid grid-cols-1 lg:grid-cols-12 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-[#1C1917]">
-            {/* Columna Izquierda (5 cols): Buscador + Índice de Fichas con Perforación de Selección */}
-            <div className="lg:col-span-5 flex flex-col justify-between bg-[#FAF8F5]">
-              <div>
-                {/* Barra de herramientas del índice */}
-                <div className="p-4 border-b-2 border-[#1C1917] bg-[#F3EFEA] space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-sm font-extrabold text-[#1C1917]">
-                      ÍNDICE DE EXPEDIENTES ({animalesFiltrados.length})
-                    </h2>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setFiltroEspecie('todos')}
-                        className={`px-2.5 py-1 text-xs font-bold border border-[#1C1917] tab-snap cursor-pointer ${
-                          filtroEspecie === 'todos'
-                            ? 'bg-[#1C1917] text-white'
-                            : 'bg-white text-[#1C1917] hover:bg-[#E5DFD7]'
-                        }`}
-                      >
-                        Todos
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFiltroEspecie(1)}
-                        className={`px-2.5 py-1 text-xs font-bold border border-[#1C1917] tab-snap cursor-pointer ${
-                          filtroEspecie === 1
-                            ? 'bg-[#1C1917] text-white'
-                            : 'bg-white text-[#1C1917] hover:bg-[#E5DFD7]'
-                        }`}
-                      >
-                        Perros
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFiltroEspecie(2)}
-                        className={`px-2.5 py-1 text-xs font-bold border border-[#1C1917] tab-snap cursor-pointer ${
-                          filtroEspecie === 2
-                            ? 'bg-[#1C1917] text-white'
-                            : 'bg-white text-[#1C1917] hover:bg-[#E5DFD7]'
-                        }`}
-                      >
-                        Gatos
-                      </button>
-                    </div>
+        {/* Cuerpo Principal en Dos Columnas: Hilo de Rescatados (5 cols) + Visor Clínico Sticky (7 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Columna Izquierda (5 cols): Línea vertical del Hilo de Ruta 40 + Lista interactiva */}
+          <div className="lg:col-span-5 relative pl-6 sm:pl-8">
+            {/* Línea vertical del Hilo de Custodia que se colorea con el scroll */}
+            <div
+              aria-hidden="true"
+              className="absolute left-2 sm:left-3 top-2 bottom-2 w-1 rounded-full bg-[#E2E8F0] overflow-hidden"
+            >
+              <div
+                className="w-full bg-gradient-to-b from-[#2563EB] via-[#F97316] to-[#059669] transition-all duration-200"
+                style={{ height: `${Math.min(100, Math.max(20, scrollProgress * 1.35))}%` }}
+              />
+            </div>
+
+            {isLoading ? (
+              <div className="surface-layered rounded-2xl p-6 text-sm font-bold text-[#475569]">
+                Sincronizando expedientes del refugio...
+              </div>
+            ) : animalesFiltrados.length === 0 ? (
+              <div className="surface-layered rounded-2xl p-6 space-y-3">
+                <p className="text-sm font-bold text-[#334155]">
+                  No encontramos rescatados para este filtro.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFiltroActivo('todos');
+                    setBusqueda('');
+                  }}
+                >
+                  Mostrar todos los rescatados
+                </Button>
+              </div>
+            ) : (
+              <div className="surface-layered rounded-2xl overflow-hidden divide-y divide-[#E2E8F0]">
+                {animalesFiltrados.map((animal, idx) => {
+                  const esActivo = expedienteActivo?.idAnimal === animal.idAnimal;
+                  return (
+                    <button
+                      key={animal.idAnimal}
+                      type="button"
+                      onClick={() => setAnimalSeleccionado(animal)}
+                      style={{ transitionDelay: `${idx * 45}ms` }}
+                      className={`scroll-reveal w-full p-4 sm:p-5 text-left transition-colors flex items-start gap-3.5 cursor-pointer ${
+                        esActivo ? 'bg-[#EFF6FF]/90' : 'bg-white hover:bg-[#F8FAFC]'
+                      }`}
+                    >
+                      {/* Miniatura con indicador de selección */}
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-[#E2E8F0] shrink-0">
+                        {animal.fotoUrl ? (
+                          <img
+                            src={animal.fotoUrl}
+                            alt={animal.nombre}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[#64748B]">
+                            <PawPrint className="w-6 h-6" />
+                          </div>
+                        )}
+                        {esActivo && (
+                          <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#2563EB] ring-2 ring-white" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-[11px] font-bold text-[#2563EB] tabular-data">
+                            {animal.codigoIdentificacion}
+                          </span>
+                          <Badge
+                            variant={animal.idEstado === 1 ? 'success' : 'warning'}
+                            dot
+                          >
+                            {animal.idEstado === 1 ? 'Listo para adoptar' : 'En rehabilitación'}
+                          </Badge>
+                        </div>
+
+                        <h3
+                          className="font-black text-lg text-[#0F172A] truncate mt-0.5"
+                          style={{ fontFamily: 'var(--font-display)' }}
+                        >
+                          {animal.nombre}
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-[#475569] truncate">
+                          {animal.razaNombre ?? 'Mestizo'} ·{' '}
+                          {animal.idSexo === 2 ? 'Hembra' : 'Macho'} ·{' '}
+                          {animal.alojamiento?.sectorNombre ?? 'Predio Central'}
+                        </p>
+
+                        <p className="text-xs text-[#64748B] flex items-center gap-1 mt-1 truncate">
+                          <MapPin className="w-3.5 h-3.5 text-[#F97316] shrink-0" />
+                          <span className="truncate">
+                            {animal.ingreso?.lugarOrigen ?? 'Ruta 40, Valles Calchaquíes'}
+                          </span>
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Columna Derecha (7 cols): Visor Sticky del Expediente + Trazabilidad en 4 Bloques */}
+          <div className="lg:col-span-7 lg:sticky lg:top-24">
+            {expedienteActivo && (
+              <article
+                aria-label={`Expediente detallado de ${expedienteActivo.nombre}`}
+                className="scroll-reveal surface-layered rounded-3xl overflow-hidden"
+              >
+                {/* Cabecera visual del expediente */}
+                <div className="grid grid-cols-1 md:grid-cols-12 border-b border-[#E2E8F0]">
+                  <div className="md:col-span-5 bg-[#0F172A] min-h-[240px] relative overflow-hidden">
+                    {expedienteActivo.fotoUrl ? (
+                      <img
+                        src={expedienteActivo.fotoUrl}
+                        alt={`Fotografía de ${expedienteActivo.nombre}`}
+                        className="w-full h-full object-cover max-h-[320px] md:max-h-none"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#64748B]">
+                        <PawPrint className="w-12 h-12" />
+                      </div>
+                    )}
+                    <span className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-[#0F172A]/85 backdrop-blur-sm text-white font-mono text-xs font-bold">
+                      {expedienteActivo.codigoIdentificacion}
+                    </span>
                   </div>
 
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-stone-700 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="search"
-                      value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                      placeholder="Filtrar por código CAN-2026, nombre o paraje..."
-                      aria-label="Filtrar expedientes"
-                      className="w-full min-h-[42px] pl-9 pr-3 py-2 bg-white border-2 border-[#1C1917] text-sm text-[#1C1917] placeholder:text-stone-500 focus:outline-hidden focus:border-[#B84A27]"
-                    />
+                  <div className="md:col-span-7 p-6 sm:p-7 flex flex-col justify-between space-y-4 bg-white">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <Badge
+                          variant={expedienteActivo.idEstado === 1 ? 'success' : 'warning'}
+                          dot
+                        >
+                          {expedienteActivo.idEstado === 1
+                            ? 'Apto para Adopción Inmediata'
+                            : 'En Seguimiento Veterinario'}
+                        </Badge>
+                        <span className="font-mono text-xs font-bold text-[#475569] tabular-data">
+                          INGRESO: {expedienteActivo.fechaIngreso}
+                        </span>
+                      </div>
+
+                      <h3
+                        className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        {expedienteActivo.nombre}
+                      </h3>
+
+                      <p className="text-sm font-bold text-[#2563EB]">
+                        {expedienteActivo.idEspecie === 1 ? 'Canino' : 'Felino'} ·{' '}
+                        {expedienteActivo.razaNombre ?? 'Mestizo Calchaquí'} ·{' '}
+                        {expedienteActivo.idSexo === 2 ? 'Hembra' : 'Macho'} ·{' '}
+                        {expedienteActivo.castrado ? 'Esterilizado' : 'En plan sanitario'}
+                      </p>
+
+                      <p className="text-sm sm:text-base text-[#334155] leading-relaxed">
+                        {expedienteActivo.observaciones ??
+                          'Rescatado en corredor de la Ruta 40, rehabilitado por el equipo de guardia.'}
+                      </p>
+                    </div>
+
+                    {expedienteActivo.ingreso?.observacion && (
+                      <div className="pt-3 border-t border-[#E2E8F0] flex items-center gap-2 text-xs sm:text-sm font-bold text-[#0F172A]">
+                        <Sparkles className="w-4 h-4 text-[#F97316] shrink-0" />
+                        <span>Nota de rescate: {expedienteActivo.ingreso.observacion}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Lista de filas perforadas */}
-                {isLoading ? (
-                  <div className="p-4 space-y-3">
-                    <Skeleton className="h-16 w-full" />
-                    <Skeleton className="h-16 w-full" />
-                    <Skeleton className="h-16 w-full" />
+                {/* Cuadrícula continua de las 4 entidades C# (Sin tarjetas anidadas) */}
+                <dl className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#E2E8F0] bg-[#F8FAFC]">
+                  {/* Celda 1: Ingreso_Animal.cs */}
+                  <div className="p-5 space-y-1.5 border-b border-[#E2E8F0]">
+                    <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#2563EB]">
+                      <span>1. Origen y Rescate (Ingreso_Animal.cs)</span>
+                      <MapPin className="w-4 h-4 shrink-0" />
+                    </dt>
+                    <dd className="text-sm sm:text-base font-bold text-[#0F172A]">
+                      {expedienteActivo.ingreso?.lugarOrigen ?? 'Ruta 40, Valles Calchaquíes'}
+                    </dd>
+                    <dd className="text-xs sm:text-sm text-[#475569]">
+                      Modalidad: {expedienteActivo.ingreso?.tipoIngreso ?? 'Rescate en ruta'} ·
+                      Motivo:{' '}
+                      <strong className="text-[#0F172A]">
+                        {expedienteActivo.ingreso?.motivo ?? 'Asistencia en ruta'}
+                      </strong>
+                    </dd>
                   </div>
-                ) : animalesFiltrados.length === 0 ? (
-                  <div className="p-6 text-sm text-stone-700">
-                    No hay expedientes que coincidan con el filtro actual en este sector.
+
+                  {/* Celda 2: Alojamiento_Animal.cs */}
+                  <div className="p-5 space-y-1.5 border-b border-[#E2E8F0]">
+                    <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#2563EB]">
+                      <span>2. Sector y Plaza (Alojamiento_Animal.cs)</span>
+                      <Compass className="w-4 h-4 shrink-0" />
+                    </dt>
+                    <dd className="text-sm sm:text-base font-bold text-[#0F172A]">
+                      {expedienteActivo.alojamiento?.sectorNombre ?? 'Caniles Norte'}
+                    </dd>
+                    <dd className="text-xs sm:text-sm text-[#475569]">
+                      {expedienteActivo.alojamiento?.predioNombre ?? 'Predio Central Ruta 40'} ·
+                      Desde:{' '}
+                      <span className="font-mono font-bold text-[#0F172A] tabular-data">
+                        {expedienteActivo.alojamiento?.fechaIngreso ?? expedienteActivo.fechaIngreso}
+                      </span>
+                    </dd>
                   </div>
-                ) : (
-                  <div className="divide-y-2 divide-[#1C1917]">
-                    {animalesFiltrados.map((animal) => {
-                      const seleccionado = animalDestacado?.idAnimal === animal.idAnimal;
+
+                  {/* Celda 3: PlanAlimentacion.cs */}
+                  <div className="p-5 space-y-1.5">
+                    <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#F97316]">
+                      <span>3. Nutrición Diaria (PlanAlimentacion.cs)</span>
+                      <Utensils className="w-4 h-4 shrink-0" />
+                    </dt>
+                    <dd className="text-sm sm:text-base font-bold text-[#0F172A]">
+                      {expedienteActivo.planAlimentacion?.tipoAlimento ??
+                        'Dieta Balanceada Adultos'}
+                    </dd>
+                    <dd className="text-xs sm:text-sm text-[#475569] tabular-data">
+                      Ración:{' '}
+                      <strong className="font-mono text-[#0F172A]">
+                        {expedienteActivo.planAlimentacion?.cantidad ?? 350}g
+                      </strong>{' '}
+                      · {expedienteActivo.planAlimentacion?.frecuencia ?? '2 tomas diarias'}
+                    </dd>
+                  </div>
+
+                  {/* Celda 4: Esterilizacion.cs */}
+                  <div className="p-5 space-y-1.5">
+                    <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#059669]">
+                      <span>4. Sanidad y Castración (Esterilizacion.cs)</span>
+                      <Stethoscope className="w-4 h-4 shrink-0" />
+                    </dt>
+                    <dd className="text-sm sm:text-base font-bold text-[#0F172A]">
+                      {expedienteActivo.castrado && expedienteActivo.esterilizacion
+                        ? `${expedienteActivo.esterilizacion.tipo} (${expedienteActivo.esterilizacion.fecha})`
+                        : 'Turno programado por guardia'}
+                    </dd>
+                    <dd className="text-xs sm:text-sm text-[#475569] tabular-data">
+                      Profesional:{' '}
+                      <strong className="text-[#0F172A]">
+                        {expedienteActivo.esterilizacion?.veterinarioNombre ?? 'Equipo Veterinario'}
+                      </strong>{' '}
+                      (
+                      <span className="font-mono">
+                        {expedienteActivo.esterilizacion?.veterinarioMatricula ?? 'MP-SAL-0418'}
+                      </span>
+                      )
+                    </dd>
+                  </div>
+                </dl>
+
+                {/* Barra de acción del expediente */}
+                <div className="p-5 sm:px-7 bg-white border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-[#334155]">
+                    <Scale className="w-4 h-4 text-[#059669] shrink-0" />
+                    <span>
+                      Vacunación al día y seguimiento post-adopción bonificado por el refugio.
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => iniciarPostulacion(expedienteActivo)}
+                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                  >
+                    Postularme para adoptar a {expedienteActivo.nombre}
+                  </Button>
+                </div>
+              </article>
+            )}
+          </div>
+        </div>
+
+        {/* ESTACIÓN 3: Formulario de Adopción Responsable conectado con el Dashboard */}
+        <section
+          id="estacion-adopcion"
+          className="scroll-reveal surface-layered rounded-3xl overflow-hidden scroll-mt-24"
+        >
+          <div className="bg-[#0F172A] text-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h2
+                className="text-2xl sm:text-3xl font-black tracking-tight text-white"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Estación Final · Solicitud de Adopción Responsable
+              </h2>
+              <p className="text-sm sm:text-base text-[#CBD5E1]">
+                Tu postulación se registra directamente en la bandeja operativa de{' '}
+                <code className="font-mono text-xs text-[#60A5FA]">SolicitudAdopcion.cs</code> para
+                coordinar la visita en el refugio.
+              </p>
+            </div>
+
+            {expedienteActivo && (
+              <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#1E293B] border border-[#334155] shrink-0">
+                <HeartHandshake className="w-5 h-5 text-[#FB923C]" />
+                <div>
+                  <span className="text-[11px] font-mono text-[#94A3B8] block">
+                    POSTULANDO PARA:
+                  </span>
+                  <span className="font-bold text-sm text-white">
+                    {expedienteActivo.nombre} ({expedienteActivo.codigoIdentificacion})
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 sm:p-8 lg:p-10 bg-white">
+            {solicitudExitosa ? (
+              <div className="space-y-5 max-w-2xl">
+                <div className="flex items-center gap-3 text-[#059669]">
+                  <CheckCircle2 className="w-8 h-8 shrink-0" />
+                  <h3
+                    className="text-xl sm:text-2xl font-black text-[#0F172A]"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    ¡Postulación registrada para {solicitudExitosa.animalNombre}!
+                  </h3>
+                </div>
+                <p className="text-base text-[#334155] leading-relaxed">
+                  Gracias, <strong>{solicitudExitosa.postulante}</strong>. El equipo de guardia de{' '}
+                  <strong>Patitas Calchaquíes</strong> ya recibió tu solicitud en el tablero
+                  administrativo (`/` &rarr; `/admin/adopciones`) y se comunicará contigo en las
+                  próximas 24 horas.
+                </p>
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setSolicitudExitosa(null)}
+                  >
+                    Enviar otra solicitud
+                  </Button>
+                  <Link
+                    to={session ? '/admin/adopciones' : '/login'}
+                    className="inline-flex items-center gap-1.5 px-4 min-h-[38px] rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs font-bold transition-colors"
+                  >
+                    <span>Ver en el Dashboard de Trabajadores</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleEnviarPostulacion} className="space-y-6">
+                {errorFormulario && (
+                  <ErrorAlert
+                    title="Revisa los datos de tu postulación"
+                    message={errorFormulario}
+                  />
+                )}
+
+                {/* Selector rápido de animal */}
+                <div className="space-y-2">
+                  <span className="block text-sm font-bold text-[#0F172A]">
+                    1. Confirma el compañero al que deseas postular:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {animalesEnGuardia.map((animal) => {
+                      const elegido = expedienteActivo?.idAnimal === animal.idAnimal;
                       return (
                         <button
                           key={animal.idAnimal}
                           type="button"
-                          onClick={() => setAnimalDestacadoId(animal.idAnimal)}
-                          className={`w-full p-4 text-left tab-snap flex items-start justify-between gap-3 cursor-pointer ${
-                            seleccionado
-                              ? 'bg-[#1C1917] text-[#FAF8F5]'
-                              : 'bg-white text-[#1C1917] hover:bg-[#F3EFEA]'
+                          onClick={() => setAnimalSeleccionado(animal)}
+                          className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
+                            elegido
+                              ? 'bg-[#2563EB] text-white border-[#1D4ED8] shadow-[0_6px_14px_-4px_rgba(37,99,235,0.4)]'
+                              : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
                           }`}
                         >
-                          <div className="flex items-start gap-3 min-w-0">
-                            {/* Perforación física de estado (Punched Hole de rw-manual-acetate-tab-board) */}
-                            <span
-                              aria-hidden="true"
-                              className={`w-4 h-4 rounded-full border-2 mt-1 shrink-0 ${
-                                seleccionado
-                                  ? 'bg-[#B84A27] border-[#FAF8F5]'
-                                  : 'bg-[#FAF8F5] border-[#1C1917]'
-                              }`}
-                            />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="font-extrabold text-base truncate"
-                                  style={{ fontFamily: 'var(--font-display)' }}
-                                >
-                                  {animal.nombre}
-                                </span>
-                                <span
-                                  className={`text-xs font-mono tabular-data px-1.5 py-0.5 border ${
-                                    seleccionado
-                                      ? 'bg-[#292524] text-[#F59E0B] border-stone-600'
-                                      : 'bg-[#F3EFEA] text-stone-800 border-[#1C1917]'
-                                  }`}
-                                >
-                                  {animal.codigoIdentificacion}
-                                </span>
-                              </div>
-                              <p
-                                className={`text-xs mt-1 truncate ${
-                                  seleccionado ? 'text-stone-300' : 'text-stone-700'
-                                }`}
-                              >
-                                {animal.razaNombre || 'Mestizo'} ·{' '}
-                                {animal.ingreso?.lugarOrigen || 'Cafayate'}
-                              </p>
-                            </div>
-                          </div>
-
+                          <span>{animal.nombre}</span>
                           <span
-                            className={`text-xs font-mono font-bold px-2 py-0.5 border shrink-0 tabular-data ${
-                              animal.idEstado === 1
-                                ? seleccionado
-                                  ? 'bg-[#14532D] text-[#DCFCE7] border-[#34D399]'
-                                  : 'bg-[#DCFCE7] text-[#14532D] border-[#14532D]'
-                                : 'bg-[#FEF3C7] text-[#78350F] border-[#78350F]'
+                            className={`font-mono text-[11px] ${
+                              elegido ? 'text-[#DBEAFE]' : 'text-[#64748B]'
                             }`}
                           >
-                            {animal.idEstado === 1 ? 'APTO' : 'GUARDIA'}
+                            ({animal.codigoIdentificacion})
                           </span>
                         </button>
                       );
                     })}
                   </div>
-                )}
-              </div>
-
-              {/* Pie del índice con resumen del sector activo */}
-              <div className="p-4 border-t-2 border-[#1C1917] bg-[#F3EFEA] text-xs text-stone-800 flex items-center justify-between gap-2">
-                <span className="font-bold">
-                  {filtroSectorId === 'todos'
-                    ? 'Mostrando los 4 sectores del Valle'
-                    : sectores.find((s) => s.idSector === filtroSectorId)?.predioNombre}
-                </span>
-                <span className="font-mono tabular-data">
-                  {animalesFiltrados.length} fichas visibles
-                </span>
-              </div>
-            </div>
-
-            {/* Columna Derecha (7 cols): Hoja Clínica Perforada del Animal Seleccionado */}
-            <div className="lg:col-span-7 bg-white flex flex-col justify-between">
-              {isLoading ? (
-                <div className="p-6 space-y-4">
-                  <Skeleton className="h-64 w-full" />
-                  <Skeleton className="h-8 w-1/2" />
-                  <Skeleton className="h-28 w-full" />
                 </div>
-              ) : animalDestacado ? (
-                <article key={animalDestacado.idAnimal} className="divide-y-2 divide-[#1C1917]">
-                  {/* Cabecera perforada de la hoja clínica */}
-                  <div className="px-5 py-3.5 bg-[#F3EFEA] flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 rounded-full bg-[#FAF8F5] border-2 border-[#1C1917] inline-block"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 rounded-full bg-[#FAF8F5] border-2 border-[#1C1917] inline-block"
-                      />
-                      <span className="font-mono text-xs sm:text-sm font-bold text-[#1C1917] tabular-data">
-                        EXPEDIENTE OFICIAL #{animalDestacado.codigoIdentificacion}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <Badge variant={animalDestacado.idEstado === 1 ? 'success' : 'warning'} dot>
-                        {animalDestacado.estadoNombre || 'Disponible para Adopción'}
-                      </Badge>
-                      <Badge variant={animalDestacado.castrado ? 'info' : 'neutral'}>
-                        {animalDestacado.castrado ? 'ESTERILIZADO/A' : 'PRE-QUIRÚRGICO'}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Bloque principal: Fotografía enmarcada + Datos filiatorios e historia */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-[#1C1917]">
-                    {animalDestacado.fotoUrl && (
-                      <div className="sm:col-span-5 bg-stone-200 min-h-[220px] max-h-[280px] sm:max-h-none overflow-hidden">
-                        <img
-                          src={animalDestacado.fotoUrl}
-                          alt={`Fotografía clínica de ${animalDestacado.nombre}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-
-                    <div className="sm:col-span-7 p-5 sm:p-6 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1C1917]">
-                            {animalDestacado.nombre}
-                          </h2>
-                          <span className="text-xs font-mono font-bold text-stone-700 tabular-data">
-                            INGRESO: {animalDestacado.fechaIngreso}
-                          </span>
-                        </div>
-
-                        <p className="text-sm font-bold text-[#B84A27]">
-                          {animalDestacado.idEspecie === 1 ? 'Especie Canina' : 'Especie Felina'} ·{' '}
-                          {animalDestacado.razaNombre || 'Mestizo Calchaquí'} ·{' '}
-                          {animalDestacado.idSexo === 1 ? 'Macho' : 'Hembra'}
-                        </p>
-
-                        <p className="text-base text-[#1C1917] leading-relaxed pt-1">
-                          {animalDestacado.observaciones}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 border-t border-stone-300 flex items-center justify-between text-xs font-mono text-stone-700 tabular-data">
-                        <span>ID SISTEMA: #{animalDestacado.idAnimal}</span>
-                        <span className="text-[#14532D] font-bold">
-                          LIBRETA SANITARIA AL DÍA
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Cuadrícula Técnica de 4 Celdas (IngresoAnimal + AlojamientoAnimal + PlanAlimentacion + Esterilizacion) */}
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-[#1C1917] bg-[#FAF8F5]">
-                    <div className="p-4 sm:p-5 space-y-1">
-                      <dt className="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[#B84A27]" />
-                        ACTA DE INGRESO (Ingreso_Animal.cs)
-                      </dt>
-                      <dd className="text-sm font-bold text-[#1C1917] pt-0.5">
-                        {animalDestacado.ingreso?.lugarOrigen || 'Ruta Nacional 40 · Cafayate'}
-                      </dd>
-                      <dd className="text-xs text-stone-700">
-                        Modalidad: {animalDestacado.ingreso?.tipoIngreso || 'Rescate en Ruta'} —{' '}
-                        {animalDestacado.ingreso?.motivo || 'Asistencia comunitaria'}
-                      </dd>
-                    </div>
-
-                    <div className="p-4 sm:p-5 space-y-1">
-                      <dt className="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
-                        <Building2 className="w-4 h-4 text-[#2D6A4F]" />
-                        SECTOR ASIGNADO (Alojamiento_Animal.cs)
-                      </dt>
-                      <dd className="text-sm font-bold text-[#1C1917] pt-0.5">
-                        {animalDestacado.alojamiento?.sectorNombre || 'Sector A · Caniles de Sol'}
-                      </dd>
-                      <dd className="text-xs text-stone-700">
-                        {animalDestacado.alojamiento?.predioNombre || 'Predio Central Ruta 40'}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-[#1C1917] bg-white">
-                    <div className="p-4 sm:p-5 space-y-1">
-                      <dt className="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
-                        <Utensils className="w-4 h-4 text-[#B84A27]" />
-                        RACIÓN DIARIA (PlanAlimentacion.cs)
-                      </dt>
-                      <dd className="text-sm font-bold text-[#1C1917] pt-0.5">
-                        {animalDestacado.planAlimentacion?.tipoAlimento || 'Balanceado Adulto'}
-                      </dd>
-                      <dd className="text-xs font-mono text-stone-700 tabular-data">
-                        {animalDestacado.planAlimentacion
-                          ? `${animalDestacado.planAlimentacion.cantidad} g/día · ${animalDestacado.planAlimentacion.frecuencia}`
-                          : '340 g/día · 2 tomas controladas'}
-                      </dd>
-                    </div>
-
-                    <div className="p-4 sm:p-5 space-y-1">
-                      <dt className="text-xs font-extrabold text-stone-700 flex items-center gap-1.5">
-                        <Stethoscope className="w-4 h-4 text-[#2D6A4F]" />
-                        FIRMA VETERINARIA (Esterilizacion.cs)
-                      </dt>
-                      <dd className="text-sm font-bold text-[#1C1917] pt-0.5">
-                        {animalDestacado.esterilizacion
-                          ? animalDestacado.esterilizacion.tipo
-                          : 'Rehabilitación clínica supervisada'}
-                      </dd>
-                      <dd className="text-xs font-mono text-stone-700 tabular-data">
-                        {animalDestacado.esterilizacion
-                          ? `${animalDestacado.esterilizacion.veterinarioNombre} (${animalDestacado.esterilizacion.veterinarioMatricula})`
-                          : 'Dr. Lucas Tolaba (MP-SAL-0291)'}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  {/* Talón de Acción Inmediata de Adopción */}
-                  <div className="p-5 bg-[#F3EFEA] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-bold text-[#1C1917]">
-                        ¿Deseas postularte para adoptar a {animalDestacado.nombre}?
-                      </p>
-                      <p className="text-xs text-stone-700">
-                        Se abrirá la planilla oficial vinculada al expediente{' '}
-                        <span className="font-mono font-bold tabular-data">
-                          {animalDestacado.codigoIdentificacion}
-                        </span>
-                        .
-                      </p>
-                    </div>
-
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={() => seleccionarParaAdoptar(animalDestacado)}
-                      leftIcon={<HeartHandshake className="w-5 h-5" />}
-                    >
-                      Iniciar trámite para {animalDestacado.nombre}
-                    </Button>
-                  </div>
-                </article>
-              ) : null}
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Planilla Oficial de Solicitud de Adopción (Espejo de Persona.cs + Solicitud_Adopcion.cs) */}
-        <section
-          id="postulacion-directa"
-          className="border-2 border-[#1C1917] bg-white overflow-hidden"
-        >
-          {/* Barra superior de chasis para la planilla */}
-          <div className="bg-[#1C1917] text-[#FAF8F5] px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#1C1917]">
-            <div className="flex items-center gap-3">
-              <span className="px-2 py-0.5 bg-[#B84A27] text-white font-mono text-xs font-bold">
-                FORMULARIO #02
-              </span>
-              <h2 className="text-lg sm:text-xl font-extrabold text-[#FAF8F5]">
-                PLANILLA PÚBLICA DE SOLICITUD DE ADOPCIÓN RESPONSABLE
-              </h2>
-            </div>
-            <span className="text-xs font-mono text-stone-300 tabular-data">
-              DESTINO: /admin/adopciones · API C#
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-[#1C1917]">
-            {/* Columna Izquierda (5 cols): Selección de Expediente y Protocolo de Seguimiento */}
-            <div className="lg:col-span-5 p-5 sm:p-7 bg-[#FAF8F5] space-y-6">
-              <div className="space-y-2">
-                <label
-                  htmlFor="selector-animal-postulacion"
-                  className="block text-sm font-extrabold text-[#1C1917]"
-                >
-                  1. EXPEDIENTE SELECCIONADO PARA ADOPCIÓN
-                </label>
-                <select
-                  id="selector-animal-postulacion"
-                  value={animalPostulacionId}
-                  onChange={(e) => {
-                    const id = Number(e.target.value);
-                    setAnimalPostulacionId(id);
-                    setAnimalDestacadoId(id);
-                    setSolicitudExitosa(null);
-                  }}
-                  className="w-full min-h-[46px] px-3.5 py-2.5 rounded-md border-2 border-[#1C1917] bg-white text-base font-bold text-[#1C1917] focus:outline-hidden focus:ring-2 focus:ring-[#B84A27]"
-                >
-                  {animalesPostulables.map((a) => (
-                    <option key={a.idAnimal} value={a.idAnimal}>
-                      [{a.codigoIdentificacion}] {a.nombre} — {a.razaNombre || 'Mestizo'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="border-t-2 border-[#1C1917] pt-5 space-y-3">
-                <h3 className="text-sm font-extrabold text-[#1C1917]">
-                  2. COMPROMISO DE SEGUIMIENTO (Seguimiento_Adopcion.cs)
-                </h3>
-                <ol className="space-y-3 text-sm text-stone-800">
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-mono font-bold text-xs bg-[#1C1917] text-white px-1.5 py-0.5 shrink-0 mt-0.5">
-                      01
-                    </span>
-                    <span>
-                      <strong>Registro inmediato:</strong> Tu solicitud impacta con estado{' '}
-                      <em>Pendiente</em> en la bandeja de coordinación del refugio.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-mono font-bold text-xs bg-[#1C1917] text-white px-1.5 py-0.5 shrink-0 mt-0.5">
-                      02
-                    </span>
-                    <span>
-                      <strong>Verificación de cerramiento:</strong> Coordinamos visita en tu domicilio del valle o entrevista en el Predio Ruta 40.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-mono font-bold text-xs bg-[#1C1917] text-white px-1.5 py-0.5 shrink-0 mt-0.5">
-                      03
-                    </span>
-                    <span>
-                      <strong>Controles a los 15 y 60 días:</strong> Asentamos dos visitas de seguimiento sanitario tras la entrega formal.
-                    </span>
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            {/* Columna Derecha (7 cols): Campos del Adoptante (Persona.cs) */}
-            <div className="lg:col-span-7 p-5 sm:p-7 bg-white">
-              {solicitudExitosa ? (
-                <div className="space-y-5 py-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-7 h-7 text-[#15803D] shrink-0 mt-0.5" />
-                    <div className="space-y-1.5">
-                      <h3 className="text-xl font-extrabold text-[#1C1917]">
-                        SOLICITUD REGISTRADA · EXPEDIENTE {solicitudExitosa.animalNombre.toUpperCase()}
-                      </h3>
-                      <p className="text-base text-stone-800 leading-relaxed">
-                        El trámite quedó asentado bajo el código{' '}
-                        <strong className="font-mono tabular-data bg-[#F3EFEA] px-2 py-0.5 border border-[#1C1917]">
-                          #SOL-{solicitudExitosa.codigoSeguimiento}
-                        </strong>
-                        {solicitudExitosa.sincronizadoMySql
-                          ? ' y tus datos de adoptante se guardaron en la tabla Personas de MySQL (api/Personas).'
-                          : ' en el registro operativo del refugio.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t-2 border-[#1C1917] flex flex-wrap items-center justify-between gap-3">
-                    <Link
-                      to={session ? '/admin/adopciones' : '/login'}
-                      className="inline-flex items-center gap-2 text-sm font-bold text-[#B84A27] hover:underline"
-                    >
-                      <span>Abrir esta solicitud en el Panel Operativo (/admin/adopciones)</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSolicitudExitosa(null)}
-                    >
-                      Cargar nueva solicitud
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <form onSubmit={handleEnviarSolicitudPublica} className="space-y-5">
-                  {errorPostulacion && (
-                    <ErrorAlert
-                      title="Revisa los campos de la planilla"
-                      message={errorPostulacion}
-                    />
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input
-                      label="Nombre del adoptante"
-                      value={nombre}
-                      onChange={(e) => setNombre(e.target.value)}
-                      placeholder="Ej. Lucía"
-                      required
-                    />
-                    <Input
-                      label="Apellido"
-                      value={apellido}
-                      onChange={(e) => setApellido(e.target.value)}
-                      placeholder="Ej. Carrizo"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input
-                      label="DNI (7 a 8 dígitos sin puntos)"
-                      value={dni}
-                      onChange={(e) => setDni(e.target.value)}
-                      placeholder="Ej. 39482110"
-                      required
-                    />
-                    <Input
-                      label="Teléfono / WhatsApp"
-                      value={telefono}
-                      onChange={(e) => setTelefono(e.target.value)}
-                      placeholder="Ej. +543868451234"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Input
-                      label="Correo electrónico (opcional)"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="lucia.carrizo@correo.com"
-                    />
-
-                    <div className="space-y-1.5">
-                      <label
-                        htmlFor="localidad-valle"
-                        className="block text-sm font-bold text-[#1C1917]"
-                      >
-                        Localidad en los Valles
-                      </label>
-                      <select
-                        id="localidad-valle"
-                        value={localidad}
-                        onChange={(e) => setLocalidad(e.target.value)}
-                        className="w-full min-h-[44px] px-3.5 py-2 rounded-md border-2 border-[#1C1917] bg-white text-base text-[#1C1917] focus:outline-hidden focus:ring-2 focus:ring-[#B84A27]"
-                      >
-                        <option value="Cafayate">Cafayate</option>
-                        <option value="San Carlos">San Carlos</option>
-                        <option value="Animaná">Animaná</option>
-                        <option value="Amaicha del Valle">Amaicha del Valle</option>
-                        <option value="Santa María">Santa María</option>
-                        <option value="Salta Capital / Tucumán">Salta Capital / Tucumán</option>
-                      </select>
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Input
-                    label="Dirección exacta o referencia rural"
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                    placeholder="Ej. Calle Nuestra Señora del Rosario 420"
+                    label="Nombre y Apellido"
+                    value={nombrePostulante}
+                    onChange={(e) => setNombrePostulante(e.target.value)}
+                    placeholder="Ej. Lucía Alvarado"
+                    required
+                  />
+                  <Input
+                    label="DNI (sin puntos)"
+                    value={dniPostulante}
+                    onChange={(e) => setDniPostulante(e.target.value)}
+                    placeholder="Ej. 38912044"
+                    inputMode="numeric"
+                    required
+                  />
+                  <Input
+                    label="Teléfono / WhatsApp"
+                    value={telefonoPostulante}
+                    onChange={(e) => setTelefonoPostulante(e.target.value)}
+                    placeholder="Ej. 3868 45-9102"
                     required
                   />
 
-                  <div className="space-y-1.5">
+                  <div className="w-full space-y-1.5">
                     <label
-                      htmlFor="observacion-hogar"
-                      className="block text-sm font-bold text-[#1C1917]"
+                      htmlFor="localidad-postulante"
+                      className="block text-sm font-bold text-[#0F172A] tracking-tight"
                     >
-                      Descripción del cerramiento, patio y convivencia con otros animales
+                      Localidad en los Valles
                     </label>
-                    <textarea
-                      id="observacion-hogar"
-                      rows={3}
-                      value={observacion}
-                      onChange={(e) => setObservacion(e.target.value)}
-                      placeholder="Indica si cuentas con tapia/alambrado perimetral y si convives con otros perros o gatos..."
-                      className="w-full px-3.5 py-2.5 rounded-md border-2 border-[#1C1917] bg-white text-base text-[#1C1917] placeholder:text-stone-500 focus:outline-hidden focus:ring-2 focus:ring-[#B84A27]"
-                    />
-                  </div>
-
-                  <div className="pt-2">
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="lg"
-                      fullWidth
-                      isLoading={enviandoSolicitud}
-                      leftIcon={<HeartHandshake className="w-5 h-5" />}
+                    <select
+                      id="localidad-postulante"
+                      value={localidadPostulante}
+                      onChange={(e) => setLocalidadPostulante(e.target.value)}
+                      className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] text-base focus:outline-none focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB]"
                     >
-                      ASENTAR SOLICITUD PARA ADOPTAR A {animalEnFormulario?.nombre.toUpperCase()}
-                    </Button>
+                      <option value="Cafayate">Cafayate (Salta)</option>
+                      <option value="San Carlos">San Carlos / Animaná</option>
+                      <option value="Amaicha del Valle">Amaicha del Valle (Tucumán)</option>
+                      <option value="Cachi / Molinos">Cachi / Molinos</option>
+                      <option value="Santa María">Santa María (Catamarca)</option>
+                      <option value="Salta Capital">Salta Capital / Alrededores</option>
+                    </select>
                   </div>
-                </form>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Tablero Técnico de Guardia Veterinaria y Predios (Veterinario.cs + Predio.cs) */}
-        <section
-          id="infraestructura-valles"
-          className="border-2 border-[#1C1917] bg-white overflow-hidden"
-        >
-          <div className="bg-[#F3EFEA] px-5 py-3.5 border-b-2 border-[#1C1917] flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base sm:text-lg font-extrabold text-[#1C1917]">
-              CUERPO VETERINARIO MATRICULADO Y POSTAS OPERATIVAS
-            </h2>
-            <span className="text-xs font-mono font-bold text-stone-700 tabular-data">
-              GUARDIA RUTA 40 · LUNES A SÁBADO 09:30 A 18:00 HS
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#1C1917]">
-            {veterinarios.map((vet) => (
-              <div key={vet.idVeterinario} className="p-5 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-base font-extrabold text-[#1C1917]">
-                    Dr/a. {vet.nombre} {vet.apellido}
-                  </h3>
-                  <span className="px-2 py-0.5 bg-[#DCFCE7] text-[#14532D] border border-[#14532D] text-xs font-mono font-bold tabular-data">
-                    {vet.matricula}
-                  </span>
                 </div>
-                <p className="text-sm text-stone-800 leading-relaxed">
-                  Dirección de quirófano, esterilizaciones y control de inmunización en el Predio Central de Cafayate.
-                </p>
-                <p className="text-xs font-mono font-bold text-stone-700 tabular-data pt-1">
-                  TEL GUARDIA: {vet.telefono}
-                </p>
-              </div>
-            ))}
 
-            <div className="p-5 space-y-2 bg-[#FAF8F5]">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-base font-extrabold text-[#1C1917]">
-                  Predio Central y Posta San Carlos
-                </h3>
-                <Calendar className="w-4 h-4 text-[#B84A27]" />
-              </div>
-              <p className="text-sm text-stone-800 leading-relaxed">
-                Recepción de rescates viales sobre Ruta Nacional 40 Km 4340 (Cafayate) y Anexo Comunitario San Carlos.
-              </p>
-              <p className="text-xs font-mono font-bold text-[#B84A27] pt-1">
-                EMERGENCIAS VIALES 24 HS
-              </p>
-            </div>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="motivo-adopcion"
+                    className="block text-sm font-bold text-[#0F172A] tracking-tight"
+                  >
+                    Cuéntanos sobre tu hogar (patio cerrado, otros animales, disponibilidad)
+                  </label>
+                  <textarea
+                    id="motivo-adopcion"
+                    rows={3}
+                    value={motivoAdopcion}
+                    onChange={(e) => setMotivoAdopcion(e.target.value)}
+                    placeholder="Ej. Vivo en Cafayate, tenemos patio tapiado y buscamos un compañero para nuestra familia..."
+                    className="w-full p-3.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] text-base placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB]"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                  <p className="text-xs sm:text-sm text-[#475569]">
+                    Al enviar, tus datos se vinculan con{' '}
+                    <code className="font-mono font-bold text-[#0F172A]">Persona.cs</code> y{' '}
+                    <code className="font-mono font-bold text-[#0F172A]">SolicitudAdopcion.cs</code>.
+                  </p>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="lg"
+                    isLoading={enviandoSolicitud}
+                    leftIcon={<HeartHandshake className="w-5 h-5" />}
+                  >
+                    Enviar Solicitud para {expedienteActivo?.nombre ?? 'Adoptar'}
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </section>
       </main>
 
-      {/* 6. Pie de Página Chasis Pizarra */}
-      <footer className="border-t-2 border-[#1C1917] bg-[#1C1917] text-[#FAF8F5] py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-sm font-extrabold text-[#FAF8F5]">
-              PATITAS CALCHAQUÍES · SISTEMA INTEGRAL DE CENSO Y ADOPCIÓN
-            </p>
-            <p className="text-xs text-stone-300 font-mono flex flex-wrap items-center gap-3 tabular-data">
-              <span className="inline-flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-[#F59E0B]" />
-                +54 3868 42-1900
-              </span>
-              <span>·</span>
-              <span>TALLER DE DESARROLLO DE SOFTWARE (ARQUITECTURA 3 CAPAS C# + REACT TS)</span>
-            </p>
+      {/* Pie de Página Moderno */}
+      <footer className="bg-[#0F172A] text-[#94A3B8] border-t border-[#1E293B]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2.5 text-white font-bold">
+            <PawPrint className="w-4 h-4 text-[#F97316]" />
+            <span>Patitas Calchaquíes · Red de Rescate Ruta 40 (Salta · Tucumán · Catamarca)</span>
           </div>
-
-          <Link
-            to={session ? '/admin' : '/login'}
-            className="inline-flex items-center gap-2 px-4 min-h-[42px] rounded-sm text-xs sm:text-sm font-bold text-[#1C1917] bg-[#FAF8F5] hover:bg-[#F59E0B] border border-[#FAF8F5] tab-snap"
-          >
-            <KeyRound className="w-4 h-4 text-[#B84A27]" />
-            <span>
-              {session ? 'ABRIR DASHBOARD OPERATIVO (/admin)' : 'INGRESO PERSONAL / VETERINARIA'}
-            </span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/login" className="hover:text-white transition-colors font-semibold">
+              Acceso Personal del Refugio
+            </Link>
+            <Link to="/admin" className="hover:text-white transition-colors font-semibold">
+              Dashboard Operativo
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

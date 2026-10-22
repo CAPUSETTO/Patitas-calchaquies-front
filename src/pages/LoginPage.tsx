@@ -68,64 +68,63 @@ export const LoginPage: React.FC = () => {
   };
 
   const obtenerIconoRol = (idRol: number) => {
-    if (idRol === 1) return <ShieldCheck className="w-5 h-5 text-[#B84A27]" />;
-    if (idRol === 2) return <Stethoscope className="w-5 h-5 text-[#2D6A4F]" />;
-    return <HeartHandshake className="w-5 h-5 text-amber-800" />;
+    if (idRol === 1) return <ShieldCheck className="w-5 h-5 text-[#2563EB]" />;
+    if (idRol === 2) return <Stethoscope className="w-5 h-5 text-[#059669]" />;
+    return <HeartHandshake className="w-5 h-5 text-[#F97316]" />;
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] bg-field-grid text-[#1C1917] flex flex-col">
-      {/* Chasis Superior Pizarra */}
-      <header className="bg-[#1C1917] text-[#FAF8F5] border-b-2 border-[#1C1917]">
+    <div className="min-h-screen bg-[#F8FAFC] bg-modern-dots text-[#0F172A] flex flex-col">
+      {/* Cabecera Superior Pizarra Nocturna */}
+      <header className="bg-[#0F172A] text-white border-b border-[#1E293B]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link
             to="/"
-            className="inline-flex items-center gap-3 text-[#FAF8F5] hover:text-[#F4A261] transition-colors"
+            className="inline-flex items-center gap-3 text-white hover:text-[#60A5FA] transition-colors"
           >
-            <div className="w-10 h-10 bg-[#B84A27] text-white border-2 border-[#FAF8F5] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-[0_4px_14px_rgba(37,99,235,0.45)]">
               <PawPrint className="w-5 h-5 stroke-[2.2]" />
             </div>
             <div>
               <span
-                className="font-black text-base sm:text-lg tracking-tight uppercase block leading-none"
+                className="font-black text-base sm:text-lg tracking-tight block leading-none"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
                 Patitas Calchaquíes
               </span>
-              <span className="font-mono text-[11px] text-[#D6CEC2] block mt-1">
-                PUESTO DE GUARDIA · RUTA 40 KM 4318
+              <span className="font-mono text-[11px] text-[#94A3B8] block mt-1">
+                PORTAL DE TRABAJADORES · RUTA 40
               </span>
             </div>
           </Link>
 
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-3.5 min-h-[40px] bg-[#292524] hover:bg-[#B84A27] text-[#FAF8F5] border border-[#57534E] text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 min-h-[40px] rounded-xl bg-[#1E293B] hover:bg-[#334155] text-white border border-[#334155] text-xs sm:text-sm font-bold transition-colors"
             style={{ fontFamily: 'var(--font-display)' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Volver al Fichero Público</span>
+            <span>Volver a la Landing Pública</span>
           </Link>
         </div>
       </header>
 
-      {/* Tablero de Credenciales de Guardia */}
+      {/* Contenedor Principal Partido (7:5) sin tarjetas anidadas */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex items-center">
-        <div className="w-full border-2 border-[#1C1917] bg-white grid grid-cols-1 lg:grid-cols-12 divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-[#1C1917]">
-          {/* Columna Izquierda (7 cols): Formulario de Credencial */}
-          <section className="lg:col-span-7 p-6 sm:p-8 lg:p-10 space-y-6">
-            <div className="border-b-2 border-[#1C1917] pb-5 space-y-2">
+        <div className="w-full surface-layered rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#E2E8F0]">
+          {/* Columna Izquierda (7 cols): Formulario de Acceso */}
+          <section className="lg:col-span-7 p-6 sm:p-8 lg:p-10 space-y-6 bg-white">
+            <div className="border-b border-[#E2E8F0] pb-5 space-y-2">
               <h1
-                className="text-2xl sm:text-3xl font-black text-[#1C1917] uppercase tracking-tight"
+                className="text-2xl sm:text-3xl font-black text-[#0F172A] tracking-tight"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Credencial de Guardia Operativa
+                Ingreso al Dashboard de Trabajadores
               </h1>
-              <p className="text-sm sm:text-base text-[#44403C] leading-relaxed">
-                Acceso interno para coordinación, veterinaria de planta y guardia voluntaria.
-                Sincronizado con las entidades{' '}
-                <code className="font-mono font-bold text-xs text-[#1C1917]">Usuario.cs</code> y{' '}
-                <code className="font-mono font-bold text-xs text-[#1C1917]">Rol.cs</code> de tu API C#.
+              <p className="text-sm sm:text-base text-[#334155] leading-relaxed">
+                Acceso para coordinación, equipo veterinario y guardia voluntaria. Modelado sobre{' '}
+                <code className="font-mono font-bold text-xs text-[#2563EB]">Usuario.cs</code> y{' '}
+                <code className="font-mono font-bold text-xs text-[#2563EB]">Rol.cs</code> de tu API C#.
               </p>
             </div>
 
@@ -150,15 +149,14 @@ export const LoginPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="login-password"
-                    className="block text-sm font-bold text-[#1C1917]"
+                    className="block text-sm font-bold text-[#0F172A]"
                   >
-                    Clave de Guardia <span className="text-[#B84A27]">*</span>
+                    Contraseña <span className="text-[#F97316]">*</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => setMostrarPassword((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#44403C] hover:text-[#B84A27] cursor-pointer"
-                    style={{ fontFamily: 'var(--font-display)' }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:text-[#1D4ED8] cursor-pointer"
                   >
                     {mostrarPassword ? (
                       <>
@@ -181,7 +179,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="Ingresa tu contraseña"
                   autoComplete="current-password"
                   required
-                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-none border-2 border-[#1C1917] bg-white text-[#1C1917] text-base placeholder:text-[#78716C] focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] text-base placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/25 focus:border-[#2563EB]"
                 />
               </div>
 
@@ -194,57 +192,59 @@ export const LoginPage: React.FC = () => {
                   isLoading={isSubmitting}
                   leftIcon={<KeyRound className="w-4 h-4" />}
                 >
-                  Abrir Tablero del Refugio
+                  Entrar al Panel Operativo
                 </Button>
               </div>
             </form>
           </section>
 
-          {/* Columna Derecha (5 cols): Perfiles de Rol en 1 toque */}
-          <aside className="lg:col-span-5 bg-[#FAF8F5] flex flex-col justify-between">
-            <div className="p-5 sm:p-6 bg-[#F2ECE1] border-b-2 border-[#1C1917] space-y-1">
+          {/* Columna Derecha (5 cols): Perfiles de Rol en 1 Toque */}
+          <aside className="lg:col-span-5 bg-[#F8FAFC] flex flex-col justify-between">
+            <div className="p-5 sm:p-6 bg-[#F1F5F9] border-b border-[#E2E8F0] space-y-1">
               <h2
-                className="text-lg font-black text-[#1C1917] uppercase tracking-tight"
+                className="text-lg font-black text-[#0F172A] tracking-tight"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Perfiles de Guardia (1 Toque)
+                Acceso Rápido por Rol (1 Toque)
               </h2>
-              <p className="text-xs sm:text-sm text-[#44403C]">
-                Selecciona un rol de prueba para ingresar directamente desde PC o Android:
+              <p className="text-xs sm:text-sm text-[#475569]">
+                Selecciona un perfil de prueba para entrar sin tipear desde PC o Android:
               </p>
             </div>
 
-            <div className="divide-y-2 divide-[#1C1917] flex-1">
+            <div className="divide-y divide-[#E2E8F0] flex-1">
               {demoAccounts.map((cuenta) => {
                 const seleccionado = user.toLowerCase() === cuenta.user.toLowerCase();
                 return (
                   <div
                     key={cuenta.usuario.idUsuario}
                     className={`p-5 transition-colors ${
-                      seleccionado ? 'bg-[#F2ECE1]' : 'bg-white'
+                      seleccionado ? 'bg-[#EFF6FF]/75' : 'bg-white'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <span
-                          className={`w-4 h-4 rounded-full border-2 border-[#1C1917] shrink-0 ${
-                            seleccionado ? 'bg-[#B84A27]' : 'bg-[#FAF8F5]'
+                          className={`w-3.5 h-3.5 rounded-full border shrink-0 ${
+                            seleccionado
+                              ? 'bg-[#2563EB] border-[#1D4ED8]'
+                              : 'bg-white border-[#CBD5E1]'
                           }`}
                         />
                         {obtenerIconoRol(cuenta.rol.idRol)}
                         <div className="min-w-0">
-                          <h3 className="font-bold text-base text-[#1C1917] truncate">
+                          <h3 className="font-bold text-base text-[#0F172A] truncate">
                             {cuenta.etiqueta}
                           </h3>
-                          <p className="text-xs text-[#44403C] font-mono font-bold truncate tabular-data">
-                            {cuenta.user} · ROL #{cuenta.rol.idRol} ({cuenta.rol.nombre.toUpperCase()})
+                          <p className="text-xs text-[#475569] font-mono font-bold truncate tabular-data">
+                            {cuenta.user} · Rol #{cuenta.rol.idRol} ({cuenta.rol.nombre})
                           </p>
                         </div>
                       </div>
-                      {seleccionado && <Badge variant="success">Activo</Badge>}
+                      {seleccionado && <Badge variant="info">Activo</Badge>}
                     </div>
 
-                    <p className="text-sm text-[#44403C] mt-2.5 leading-relaxed">
+                    <p className="text-sm text-[#334155] mt-2 leading-relaxed">
                       {cuenta.resumenPermisos}
                     </p>
 

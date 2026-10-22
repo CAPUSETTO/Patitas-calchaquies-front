@@ -2,58 +2,50 @@ import React from 'react';
 
 export type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+export interface BadgeProps {
+  children: React.ReactNode;
   variant?: BadgeVariant;
+  className?: string;
   dot?: boolean;
 }
 
-/**
- * Badge - Sello técnico de estado con borde firme y tipografía tabular.
- */
+const variantStyles: Record<BadgeVariant, string> = {
+  success: 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]',
+  warning: 'bg-[#FFF7ED] text-[#9A3412] border-[#FED7AA]',
+  danger: 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]',
+  info: 'bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]',
+  neutral: 'bg-[#F1F5F9] text-[#334155] border-[#CBD5E1]',
+};
+
+const dotStyles: Record<BadgeVariant, string> = {
+  success: 'bg-[#059669]',
+  warning: 'bg-[#F97316]',
+  danger: 'bg-[#DC2626]',
+  info: 'bg-[#2563EB]',
+  neutral: 'bg-[#64748B]',
+};
+
 export const Badge: React.FC<BadgeProps> = ({
   children,
   variant = 'neutral',
-  dot = false,
   className = '',
-  ...props
+  dot = false,
 }) => {
-  const variantStyles: Record<BadgeVariant, { container: string; dot: string }> = {
-    success: {
-      container: 'bg-[#DCFCE7] text-[#14532D] border-[#14532D]',
-      dot: 'bg-[#15803D]',
-    },
-    warning: {
-      container: 'bg-[#FEF3C7] text-[#78350F] border-[#78350F]',
-      dot: 'bg-[#B45309]',
-    },
-    danger: {
-      container: 'bg-[#FEE2E2] text-[#7F1D1D] border-[#7F1D1D]',
-      dot: 'bg-[#B91C1C]',
-    },
-    info: {
-      container: 'bg-[#DBEAFE] text-[#1E3A8A] border-[#1E3A8A]',
-      dot: 'bg-[#1D4ED8]',
-    },
-    neutral: {
-      container: 'bg-[#F3EFEA] text-[#1C1917] border-[#1C1917]',
-      dot: 'bg-[#57534E]',
-    },
-  };
-
-  const currentVariant = variantStyles[variant];
-
   return (
     <span
       className={`
-        inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm text-xs font-bold
-        border select-none tabular-data ${currentVariant.container} ${className}
+        inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold tracking-tight border
+        ${variantStyles[variant]}
+        ${className}
       `}
-      {...props}
     >
       {dot && (
-        <span className={`w-2 h-2 rounded-none ${currentVariant.dot}`} aria-hidden="true" />
+        <span
+          className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotStyles[variant]}`}
+          aria-hidden="true"
+        />
       )}
-      <span>{children}</span>
+      {children}
     </span>
   );
 };

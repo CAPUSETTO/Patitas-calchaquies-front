@@ -1,141 +1,182 @@
 @import "tailwindcss";
 
-@theme {
-  --color-calchaqui-50: #fbf6f0;
-  --color-calchaqui-100: #f6ecdf;
-  --color-calchaqui-200: #ebd8c0;
-  --color-calchaqui-300: #dcbc97;
-  --color-calchaqui-400: #cb9b6d;
-  --color-calchaqui-500: #bf814e;
-  --color-calchaqui-600: #b84a27; /* Terracota primario */
-  --color-calchaqui-700: #9c3b1e;
-  --color-calchaqui-800: #7e2f17;
-  --color-calchaqui-900: #652614;
+@layer base {
+  :root {
+    --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, monospace;
 
-  --color-ground: #faf8f5;
-  --color-surface: #ffffff;
-  --color-panel: #f3efea;
-  --color-border-subtle: #1c1917;
+    /* Paleta Moderna: Blanco Titanio, Pizarra Nocturna y Capas Vibrantes (Cobalto, Coral, Esmeralda) */
+    --bg-canvas: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-subtle: #F1F5F9;
+    --bg-night: #0F172A;
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    --text-muted: #64748B;
+    --accent-cobalt: #2563EB;
+    --accent-coral: #F97316;
+    --accent-emerald: #059669;
+    --border-subtle: #E2E8F0;
+    --border-strong: #CBD5E1;
 
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    color-scheme: light;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    caret-color: var(--accent-cobalt);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  ::selection {
+    background-color: #2563EB;
+    color: #FFFFFF;
+  }
 }
 
-:root {
-  color-scheme: light;
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.55;
-  background-color: #faf8f5;
-  color: #1c1917;
-  caret-color: #b84a27;
-}
-
-::selection {
-  background-color: #b84a27;
-  color: #ffffff;
-}
-
-/* Títulos firmes y ultra legibles con Archivo */
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  text-wrap: balance;
-  letter-spacing: -0.02em;
-}
-
-p, li, dd, label, input, select, textarea {
-  font-family: var(--font-sans);
-}
-
-p {
-  text-wrap: pretty;
-}
-
-/* Enlaces y foco de teclado de alta visibilidad al sol */
-a {
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1.5px;
-}
-
-:focus-visible {
-  outline: 2px solid #b84a27;
-  outline-offset: 2px;
-}
-
-/* Superficie de papel técnico con retícula sutil de archivo */
-.bg-field-grid {
-  background-color: #faf8f5;
-  background-image: radial-gradient(#d6cec2 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Hoja clínica con borde estructural firme de pizarra */
-.clinical-sheet {
-  background-color: #ffffff;
-  border: 2px solid #1c1917;
-}
-
-/* Banco de contadores sobre chasis pizarra (#1C1917) */
-.counter-chassis {
-  background-color: #1c1917;
-  color: #faf8f5;
-  border: 2px solid #1c1917;
-}
-
-.counter-tube {
-  background-color: #292524;
-  border: 1px solid #44403c;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Transición mecánica de 90ms estilo fichero (rw-manual-acetate-tab-board) */
-.tab-snap {
-  transition: background-color 90ms steps(2), color 90ms steps(2), border-color 90ms steps(2), transform 90ms steps(2);
-}
-
-/* Scrollbar integrada a la paleta Tierra y Pizarra */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f3efea;
-  border-left: 1px solid #d6cec2;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #57534e;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #b84a27;
-}
-
-/* Números tabulares alineados para DNI, teléfonos, fechas, raciones e IDs */
+/* Números tabulares para métricas, códigos, DNIs y raciones */
 .tabular-data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-/* Safe areas para notch y barra de navegación gestual de Android */
-.safe-bottom {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+/* Textura de puntos sutil estilo Riso moderno sobre Blanco Titanio */
+.bg-modern-dots {
+  background-color: #F8FAFC;
+  background-image: radial-gradient(rgba(37, 99, 235, 0.10) 1px, transparent 1px),
+    radial-gradient(rgba(249, 115, 22, 0.08) 1px, #F8FAFC 1px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
 }
 
-/* Ergonomía táctil para móviles */
-@media (pointer: coarse) {
-  button, a, input, select, textarea {
-    min-height: 44px;
+/* Superficie con elevación suave de capas cromáticas (Cobalto + Coral) */
+.surface-layered {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow:
+    0 18px 38px -14px rgba(15, 23, 42, 0.08),
+    0 8px 20px -8px rgba(37, 99, 235, 0.07);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+}
+
+.surface-layered-interactive:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: #93C5FD;
+  box-shadow:
+    0 22px 44px -14px rgba(37, 99, 235, 0.16),
+    0 10px 24px -10px rgba(249, 115, 22, 0.14);
+}
+
+/* Animación de entrada impulsada por Scroll (IntersectionObserver) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.985);
+  filter: blur(4px);
+  transition:
+    opacity 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 650ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+/* Desplazamiento de capas Riso al hacer hover sobre retratos o estaciones */
+.riso-frame {
+  position: relative;
+  isolation: isolate;
+}
+
+.riso-frame::before,
+.riso-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease;
+  z-index: -1;
+}
+
+.riso-frame::before {
+  background-color: rgba(37, 99, 235, 0.14);
+  transform: translate3d(-6px, 6px, 0);
+}
+
+.riso-frame::after {
+  background-color: rgba(249, 115, 22, 0.14);
+  transform: translate3d(6px, -6px, 0);
+}
+
+.riso-frame:hover::before {
+  transform: translate3d(-10px, 10px, 0);
+  background-color: rgba(37, 99, 235, 0.22);
+}
+
+.riso-frame:hover::after {
+  transform: translate3d(10px, -10px, 0);
+  background-color: rgba(249, 115, 22, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .surface-layered,
+  .riso-frame::before,
+  .riso-frame::after {
+    transition: none;
   }
 }
 
-/* Evitar resaltado azul genérico de tap en Android WebView/Chrome */
-* {
-  -webkit-tap-highlight-color: transparent;
+/* Scrollbar limpia y moderna */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #94A3B8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

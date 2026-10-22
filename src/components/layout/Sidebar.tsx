@@ -5,7 +5,8 @@ import { MAIN_NAV_ITEMS } from './navigationConfig';
 import { authService } from '../../services/authService';
 
 /**
- * Sidebar - Panel de navegación lateral para escritorio en el Dashboard Administrativo (/admin).
+ * Sidebar - Panel de navegación lateral moderno en Pizarra Nocturna (#0F172A)
+ * para máxima legibilidad y descanso visual de los trabajadores del refugio.
  */
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -21,37 +22,37 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       aria-label="Barra lateral principal"
-      className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-[#F2ECE1] border-r-2 border-[#1C1917] z-30"
+      className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-[#0F172A] text-white border-r border-[#1E293B] z-30"
     >
-      {/* Cabecera Chasis Pizarra */}
-      <div className="flex items-center justify-between gap-3 px-4 h-16 border-b-2 border-[#1C1917] bg-[#1C1917] text-[#FAF8F5] shrink-0">
+      {/* Cabecera de Identidad */}
+      <div className="flex items-center justify-between gap-3 px-5 h-16 border-b border-[#1E293B] shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 bg-[#B84A27] text-white border-2 border-[#FAF8F5] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(37,99,235,0.4)]">
             <PawPrint className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div className="min-w-0">
             <h1
-              className="font-black text-sm text-[#FAF8F5] uppercase truncate tracking-tight"
+              className="font-black text-sm text-white truncate tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               Patitas Calchaquíes
             </h1>
-            <p className="font-mono text-[11px] text-[#D6CEC2] truncate">
-              GUARDIA OPERATIVA
+            <p className="font-mono text-[11px] text-[#94A3B8] truncate">
+              PANEL OPERATIVO
             </p>
           </div>
         </div>
       </div>
 
-      {/* Enlace directo al Fichero Público */}
-      <div className="p-3 border-b-2 border-[#1C1917] bg-[#FAF8F5]">
+      {/* Enlace directo a la Landing Pública */}
+      <div className="p-3 border-b border-[#1E293B]">
         <Link
           to="/"
-          className="flex items-center justify-between gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#1C1917] bg-white hover:bg-[#F2ECE1] border-2 border-[#1C1917] transition-colors"
+          className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#E2E8F0] bg-[#1E293B] hover:bg-[#334155] transition-colors"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          <span>Fichero Público</span>
-          <ExternalLink className="w-3.5 h-3.5 text-[#B84A27] shrink-0" />
+          <span>Ver Landing Pública</span>
+          <ExternalLink className="w-3.5 h-3.5 text-[#FB923C] shrink-0" />
         </Link>
       </div>
 
@@ -59,10 +60,10 @@ export const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <div>
           <div
-            className="px-2 pb-2 text-xs font-black uppercase tracking-wider text-[#44403C]"
+            className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Operaciones Centrales
+            Gestión del Refugio
           </div>
           <div className="space-y-1">
             {itemsPrincipales.map((item) => {
@@ -73,11 +74,11 @@ export const Sidebar: React.FC = () => {
                   to={item.path}
                   end={item.path === '/admin'}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-2.5 text-sm font-bold transition-colors
+                    flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all
                     ${
                       isActive
-                        ? 'bg-[#1C1917] text-[#FAF8F5]'
-                        : 'text-[#1C1917] hover:bg-[#FAF8F5]'
+                        ? 'bg-[#2563EB] text-white shadow-[0_6px_16px_-4px_rgba(37,99,235,0.45)]'
+                        : 'text-[#CBD5E1] hover:bg-[#1E293B] hover:text-white'
                     }
                   `}
                 >
@@ -91,10 +92,10 @@ export const Sidebar: React.FC = () => {
 
         <div>
           <div
-            className="px-2 pb-2 text-xs font-black uppercase tracking-wider text-[#44403C]"
+            className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#94A3B8]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Catálogos MySQL (C#)
+            Catálogos API C# (MySQL)
           </div>
           <div className="space-y-1">
             {itemsCatalogos.map((item) => {
@@ -104,11 +105,11 @@ export const Sidebar: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-2.5 text-sm font-bold transition-colors
+                    flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all
                     ${
                       isActive
-                        ? 'bg-[#1C1917] text-[#FAF8F5]'
-                        : 'text-[#1C1917] hover:bg-[#FAF8F5]'
+                        ? 'bg-[#2563EB] text-white shadow-[0_6px_16px_-4px_rgba(37,99,235,0.45)]'
+                        : 'text-[#CBD5E1] hover:bg-[#1E293B] hover:text-white'
                     }
                   `}
                 >
@@ -122,24 +123,23 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Pie de Sidebar: Usuario activo + Estado API + Cerrar sesión */}
-      <div className="p-4 border-t-2 border-[#1C1917] bg-[#FAF8F5] shrink-0 space-y-3">
+      <div className="p-4 border-t border-[#1E293B] bg-[#0F172A] shrink-0 space-y-3">
         {session && (
-          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#D6CEC2]">
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#1E293B]">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917] truncate">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2D6A4F] shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-white truncate">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#34D399] shrink-0" />
                 <span className="font-mono truncate">{session.usuario.user}</span>
               </div>
-              <p className="text-[11px] font-bold text-[#44403C] uppercase truncate mt-0.5">
-                ROL: {session.rol.nombre}
+              <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
+                Rol: {session.rol.nombre}
               </p>
             </div>
             <button
               type="button"
               onClick={handleLogout}
               title="Cerrar sesión"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold uppercase text-[#1C1917] hover:text-white hover:bg-[#991B1B] border-2 border-[#1C1917] transition-colors cursor-pointer shrink-0"
-              style={{ fontFamily: 'var(--font-display)' }}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#CBD5E1] hover:text-white hover:bg-[#DC2626] bg-[#1E293B] transition-colors cursor-pointer shrink-0"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Salir</span>
@@ -147,10 +147,10 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#1C1917] tabular-data">
-          <span className="inline-flex h-2.5 w-2.5 bg-[#2D6A4F] border border-[#1C1917]"></span>
-          <Wifi className="w-3.5 h-3.5 text-[#1C1917]" />
-          <span className="truncate">API C# · PUERTO 5227</span>
+        <div className="flex items-center gap-2 text-xs font-mono text-[#94A3B8] tabular-data">
+          <span className="inline-flex h-2 w-2 rounded-full bg-[#10B981]"></span>
+          <Wifi className="w-3.5 h-3.5 text-[#34D399]" />
+          <span className="truncate">API C# · Puerto 5227</span>
         </div>
       </div>
     </aside>
