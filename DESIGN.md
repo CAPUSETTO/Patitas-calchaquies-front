@@ -1,41 +1,47 @@
-# Design System — Tierra y Pizarra Calchaquí
+# DESIGN.md — Sistema de Diseño: Patitas Calchaquíes
 
-<!-- impeccable:design-schema 1 -->
+## 1. Identidad Visual y Dirección ("Fichero Clínico de Pestañas Escalonadas y Contadores de Chasis")
+**Patitas Calchaquíes** es una plataforma web y móvil (Android-first) para el rescate, rehabilitación veterinaria y adopción responsable en los Valles Calchaquíes (Ruta 40, Salta / Tucumán / Catamarca).
 
-## 1. Fundamentos Visuales (Modo: Operate)
-El sistema de diseño está concebido para uso operativo continuo, priorizando escaneabilidad rápida en exteriores bajo la luz del sol en dispositivos móviles Android y ergonomía de escritorio.
+Tras descartar la estética genérica de tarjetas blancas redondeadas y tipografías serif incómodas de leer (`Fraunces`), el sistema adopta una arquitectura inspirada en **planillas clínicas veterinarias de guardia y tableros físicos de sectores (`seed:3aa6152dd11177c9`)**:
+- **Lectura sin esfuerzo al sol (`Atkinson Hyperlegible`):** Cuerpo de texto diseñado por el *Braille Institute* para máxima distinción de caracteres y lectura rápida tanto en escritorio como en celulares Android al aire libre.
+- **Trazos estructurales firmes (`2px solid #1C1917`):** Bloques continuos subdivididos por líneas expuestas (`divide-x-2`, `divide-y-2`), sin tarjetas flotantes anidadas ni sombras difusas.
+- **Chasis de contadores (`.counter-chassis` + `.counter-tube`):** Cabeceras operativas en pizarra oscura (`#1C1917`) con indicadores numéricos tubulares en `Chivo Mono` (`tabular-nums`).
+- **Riel de pestañas escalonadas (`.tab-snap`):** Pestañas físicas que sobresalen del borde superior de cada fichero con respuesta mecánica instantánea (`90ms steps(2)`).
 
-## 2. Paleta de Colores (Estrategia Restrained)
-- **Superficie Principal (Ground):** `#FAF8F5` (Piedra/Arena clara, cálida, sin fatiga visual ni deslumbramiento).
-- **Superficie Secundaria (Panels / Chrome):** `#F3EFEA` (Piedra suave para Sidebar y BottomNav).
-- **Superficie de Tarjeta / Contenedor:** `#FFFFFF` con borde sutil `#E5DFD7`. Cero sombras difusas pesadas.
-- **Texto Principal (High Contrast):** `#1C1917` (Pizarra oscuro, ratio de contraste > 14:1 contra el fondo).
-- **Texto Secundario (Muted):** `#57534E` (Pizarra medio, ratio de contraste > 5:1).
-- **Acento Primario (Brand Action):** `#B84A27` (Terracota Calchaquí, contraste accesible AA con texto blanco).
-- **Acento Primario Hover/Active:** `#9C3B1E` / `#7E2F17`.
+---
 
-### Vocabulario Semántico de Estados
-- **Disponible / Éxito:** `#15803D` sobre fondo `#DCFCE7` (Borde `#BBF7D0`).
-- **En Tratamiento / Advertencia:** `#B45309` sobre fondo `#FEF3C7` (Borde `#FDE68A`).
-- **Urgente / Crítico / Error:** `#B91C1C` sobre fondo `#FEE2E2` (Borde `#FECACA`).
-- **Adoptado / Tránsito / Info:** `#1D4ED8` sobre fondo `#DBEAFE` (Borde `#BFDBFE`).
-- **Inactivo / Neutral:** `#57534E` sobre fondo `#F5F5F4` (Borde `#E7E5E4`).
+## 2. Paleta de Colores (Mantenida y Enfocada en Alto Contraste)
 
-## 3. Tipografía
-- **Display / Editorial (`--font-display`):** `Fraunces` (serif óptica cálida para titulares de historias de rescate y cabeceras principales).
-- **Cuerpo y Controles (`--font-sans`):** `Plus Jakarta Sans` (humanista limpia de alta legibilidad al sol).
-- **Datos Clínicos y Códigos (`--font-mono`):** `JetBrains Mono` con `font-variant-numeric: tabular-nums` para códigos de expediente (`CAN-2026-001`), matrículas (`MP-SAL-0418`), DNIs y raciones en gramos.
-- **Escala fija en rem:**
-  - `text-xs`: 0.75rem (12px) - Metadatos secundarios
-  - `text-sm`: 0.875rem (14px) - Badges, hints
-  - `text-base`: 1rem (16px) - Cuerpo, inputs obligatorios en Android (evita auto-zoom)
-  - `text-lg`: 1.125rem (18px) - Subtítulos, cabeceras de tarjeta
-  - `text-xl`: 1.25rem (20px) - Títulos de sección
-  - `text-2xl`: 1.5rem (24px) - Títulos de página
-  - `clamp(2.15rem, 4vw, 3.5rem)`: Titular de apertura en la Bitácora Pública (`/`)
+| Token / Uso | Hex | Aplicación en la Interfaz |
+| :--- | :--- | :--- |
+| **Papel Técnico de Campo** | `#FAF8F5` | Fondo principal cálido con cuadrícula técnica sutil (`.bg-field-grid`). |
+| **Arena Calchaquí** | `#F2ECE1` | Cabeceras de planilla, pestañas inactivas y celdas destacadas. |
+| **Chasis Pizarra (Tinta / Marco)** | `#1C1917` | Bordes estructurales de `2px`, chasis superior de contadores y texto primario. |
+| **Terracota Calchaquí (Primario)** | `#B84A27` | Botones primarios, pestañas activas, perforaciones seleccionadas y alertas de acción. |
+| **Verde Cardón (Sanidad / Alta)** | `#2D6A4F` | Estados de alta médica, animales listos para adopción y conexión activa con MySQL. |
+| **Ámbar de Guardia** | `#F4A261` / `#9A3412` | Seguimiento nutricional, rehabilitación en curso y avisos preventivos. |
 
-## 4. Ergonomía Táctil y Android
-- Área táctil mínima: `44px x 44px` (`min-h-11`, `min-w-11`).
-- `safe-area-inset-bottom` aplicado en navegación inferior.
-- Sin dependencias exclusivas de `:hover` para interacción.
-- Manejo de desbordamiento de texto: `truncate`, `line-clamp-2` y `min-w-0` en Flexbox/Grid.
+---
+
+## 3. Tipografía de Alta Legibilidad
+
+1. **Cuerpo y Lectura Clínica (`--font-sans: 'Atkinson Hyperlegible'`):**
+   - Creada específicamente para maximizar la legibilidad en formularios, historias clínicas, temperamentos y tablas.
+2. **Titulares y Pestañas de Sector (`--font-display: 'Archivo'`):**
+   - Grotesca técnica firme en pesos `700–900` para encabezados de expediente, botones táctiles y pestañas de navegación.
+3. **Contadores y Códigos Oficiales (`--font-mono: 'Chivo Mono'`):**
+   - Números tabulares (`font-variant-numeric: tabular-nums`) para códigos (`CAN-2026-001`), matrículas (`MP-SAL-0418`), DNIs, raciones en gramos y fechas.
+
+---
+
+## 4. Arquitectura de Superficies
+
+- **Portada Pública (`/` — [`src/pages/LandingPage.tsx`](file:///c:/Users/sebaz/Documents/front%20app%20Patitas%20calchaquies/src/pages/LandingPage.tsx)):**
+  - **Chasis Superior Pizarra (`#1C1917`):** Identidad del puesto + banco de 3 contadores en vivo (`EN GUARDIA`, `APTOS ADOPCIÓN`, `REHABILITACIÓN`).
+  - **Riel de Pestañas Escalonadas:** Filtra instantáneamente el censo por especie o por sector físico (`Caniles Norte`, `Gaterío Sol`, `Enfermería`).
+  - **Fichero de Doble Hoja (5:7):** Índice de expedientes con perforación de selección a la izquierda (`5 cols`) y **Hoja Clínica Perforada** a la derecha (`7 cols`) con cuadrícula técnica de 4 celdas (`Ingreso_Animal.cs`, `Alojamiento_Animal.cs`, `PlanAlimentacion.cs`, `Esterilizacion.cs`) y **Planilla Oficial #02** de postulación.
+- **Credencial de Guardia (`/login` — [`src/pages/LoginPage.tsx`](file:///c:/Users/sebaz/Documents/front%20app%20Patitas%20calchaquies/src/pages/LoginPage.tsx)):**
+  - Tablero partido `7:5` con bordes de `2px solid #1C1917` y acceso en 1 toque para los 3 roles configurados (`Coordinación`, `Veterinaria`, `Voluntariado`).
+- **Tablero Administrativo (`/admin` — [`src/pages/HomePage.tsx`](file:///c:/Users/sebaz/Documents/front%20app%20Patitas%20calchaquies/src/pages/HomePage.tsx)):**
+  - Chasis de 4 contadores operativos, bandeja de evaluación de postulaciones web, ocupación por sector y directorio de módulos conectados con la API C#.

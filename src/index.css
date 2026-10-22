@@ -15,34 +15,50 @@
   --color-ground: #faf8f5;
   --color-surface: #ffffff;
   --color-panel: #f3efea;
-  --color-border-subtle: #e5dfd7;
+  --color-border-subtle: #1c1917;
 
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
   color-scheme: light;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
   background-color: #faf8f5;
   color: #1c1917;
   caret-color: #b84a27;
 }
 
 ::selection {
-  background-color: #ebd8c0;
-  color: #1c1917;
+  background-color: #b84a27;
+  color: #ffffff;
 }
 
-/* Enlaces y foco de teclado tematizados según craft-floor.md */
+/* Títulos firmes y ultra legibles con Archivo */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+p, li, dd, label, input, select, textarea {
+  font-family: var(--font-sans);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Enlaces y foco de teclado de alta visibilidad al sol */
 a {
   text-underline-offset: 0.22em;
-  text-decoration-thickness: 1px;
+  text-decoration-thickness: 1.5px;
 }
 
 :focus-visible {
@@ -50,28 +66,51 @@ a {
   outline-offset: 2px;
 }
 
-/* Balanceo tipográfico en titulares */
-h1, h2, h3, h4 {
-  text-wrap: balance;
+/* Superficie de papel técnico con retícula sutil de archivo */
+.bg-field-grid {
+  background-color: #faf8f5;
+  background-image: radial-gradient(#d6cec2 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-p {
-  text-wrap: pretty;
+/* Hoja clínica con borde estructural firme de pizarra */
+.clinical-sheet {
+  background-color: #ffffff;
+  border: 2px solid #1c1917;
+}
+
+/* Banco de contadores sobre chasis pizarra (#1C1917) */
+.counter-chassis {
+  background-color: #1c1917;
+  color: #faf8f5;
+  border: 2px solid #1c1917;
+}
+
+.counter-tube {
+  background-color: #292524;
+  border: 1px solid #44403c;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Transición mecánica de 90ms estilo fichero (rw-manual-acetate-tab-board) */
+.tab-snap {
+  transition: background-color 90ms steps(2), color 90ms steps(2), border-color 90ms steps(2), transform 90ms steps(2);
 }
 
 /* Scrollbar integrada a la paleta Tierra y Pizarra */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #faf8f5;
+  background: #f3efea;
+  border-left: 1px solid #d6cec2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d6cfc7;
-  border-radius: 4px;
+  background: #57534e;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -80,29 +119,8 @@ p {
 
 /* Números tabulares alineados para DNI, teléfonos, fechas, raciones e IDs */
 .tabular-data {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-}
-
-/* Transición suave de ficha activa (un único momento de movimiento con ease-out exponencial) */
-@keyframes dossierReveal {
-  from {
-    opacity: 0.72;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dossier-transition {
-  animation: dossierReveal 240ms var(--ease-out-expo) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dossier-transition {
-    animation: none;
-  }
 }
 
 /* Safe areas para notch y barra de navegación gestual de Android */
