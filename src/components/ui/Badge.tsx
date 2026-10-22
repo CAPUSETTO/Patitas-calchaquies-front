@@ -8,11 +8,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 /**
- * Badge - Etiqueta semántica de estado para animales y procesos.
- * 
- * Enfoque Impeccable:
- * - Alto contraste garantizado para exteriores bajo luz solar directa.
- * - Vocabulario estandarizado de estados según la dirección "Tierra y Pizarra Calchaquí".
+ * Badge - Sello técnico de estado con borde firme y tipografía tabular.
  */
 export const Badge: React.FC<BadgeProps> = ({
   children,
@@ -23,24 +19,24 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const variantStyles: Record<BadgeVariant, { container: string; dot: string }> = {
     success: {
-      container: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-      dot: 'bg-emerald-600',
+      container: 'bg-[#DCFCE7] text-[#14532D] border-[#14532D]',
+      dot: 'bg-[#15803D]',
     },
     warning: {
-      container: 'bg-amber-50 text-amber-900 border-amber-200/80',
-      dot: 'bg-amber-600',
+      container: 'bg-[#FEF3C7] text-[#78350F] border-[#78350F]',
+      dot: 'bg-[#B45309]',
     },
     danger: {
-      container: 'bg-rose-50 text-rose-800 border-rose-200/80',
-      dot: 'bg-rose-600',
+      container: 'bg-[#FEE2E2] text-[#7F1D1D] border-[#7F1D1D]',
+      dot: 'bg-[#B91C1C]',
     },
     info: {
-      container: 'bg-blue-50 text-blue-800 border-blue-200/80',
-      dot: 'bg-blue-600',
+      container: 'bg-[#DBEAFE] text-[#1E3A8A] border-[#1E3A8A]',
+      dot: 'bg-[#1D4ED8]',
     },
     neutral: {
-      container: 'bg-stone-100 text-stone-700 border-stone-200',
-      dot: 'bg-stone-500',
+      container: 'bg-[#F3EFEA] text-[#1C1917] border-[#1C1917]',
+      dot: 'bg-[#57534E]',
     },
   };
 
@@ -49,13 +45,13 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={`
-        inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold
-        border select-none tracking-tight ${currentVariant.container} ${className}
+        inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm text-xs font-bold
+        border select-none tabular-data ${currentVariant.container} ${className}
       `}
       {...props}
     >
       {dot && (
-        <span className={`w-1.5 h-1.5 rounded-full ${currentVariant.dot}`} aria-hidden="true" />
+        <span className={`w-2 h-2 rounded-none ${currentVariant.dot}`} aria-hidden="true" />
       )}
       <span>{children}</span>
     </span>

@@ -19,38 +19,38 @@ export interface NavItem {
 }
 
 export const MAIN_NAV_ITEMS: NavItem[] = [
-  // 1. Módulos Principales
+  // 1. Módulos Principales del Panel Administrativo
   {
-    name: 'Inicio',
-    path: '/',
+    name: 'Panel',
+    path: '/admin',
     icon: Home,
     description: 'Panel operativo general',
     seccion: 'principal',
   },
   {
     name: 'Animales',
-    path: '/animales',
+    path: '/admin/animales',
     icon: Dog,
     description: 'Censo, fichas de rescate y estados',
     seccion: 'principal',
   },
   {
     name: 'Adopciones',
-    path: '/adopciones',
+    path: '/admin/adopciones',
     icon: HeartHandshake,
     description: 'Solicitudes y seguimiento',
     seccion: 'principal',
   },
   {
     name: 'Atenciones',
-    path: '/atenciones',
+    path: '/admin/atenciones',
     icon: Stethoscope,
     description: 'Consultas y tratamientos',
     seccion: 'principal',
   },
   {
     name: 'Personas',
-    path: '/personas',
+    path: '/admin/personas',
     icon: Users,
     description: 'Padrón de adoptantes y contactos (api/Personas)',
     seccion: 'principal',
@@ -59,21 +59,21 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
   // 2. Catálogos Operativos
   {
     name: 'Vacunas',
-    path: '/vacunas',
+    path: '/admin/vacunas',
     icon: Syringe,
     description: 'Catálogo de inmunización (api/Vacuna)',
     seccion: 'catalogo',
   },
   {
     name: 'Medicamentos',
-    path: '/medicamentos',
+    path: '/admin/medicamentos',
     icon: Pill,
     description: 'Catálogo de fármacos (api/Medicamento)',
     seccion: 'catalogo',
   },
   {
     name: 'Razas',
-    path: '/razas',
+    path: '/admin/razas',
     icon: Sparkles,
     description: 'Razas por especie (api/Raza)',
     seccion: 'catalogo',

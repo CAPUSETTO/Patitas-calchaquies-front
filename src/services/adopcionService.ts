@@ -73,7 +73,13 @@ export const adopcionService = {
 
   async crear(
     dto: SolicitudAdopcionCrearDto,
-    extraInfo?: { personaNombre?: string; animalNombre?: string }
+    extraInfo?: {
+      personaNombre?: string;
+      personaDni?: string;
+      personaTelefono?: string;
+      animalNombre?: string;
+      animalCodigo?: string;
+    }
   ): Promise<SolicitudAdopcionDto> {
     if (!USE_MOCK) {
       const res = await axiosClient.post<SolicitudAdopcionDto>(BASE_PATH, dto);
@@ -87,8 +93,11 @@ export const adopcionService = {
       idSolicitudAdopcion: nuevoId,
       idPersona: dto.idPersona,
       personaNombre: extraInfo?.personaNombre || `Persona #${dto.idPersona}`,
+      personaDni: extraInfo?.personaDni,
+      personaTelefono: extraInfo?.personaTelefono,
       idAnimal: dto.idAnimal,
       animalNombre: extraInfo?.animalNombre || `Animal #${dto.idAnimal}`,
+      animalCodigo: extraInfo?.animalCodigo,
       fecha: new Date().toISOString().split('T')[0],
       estado: 'Pendiente',
       observacion: dto.observacion || '',

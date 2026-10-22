@@ -1,7 +1,79 @@
 /**
- * Interfaces TypeScript para la entidad Animal.
- * Espejo de `PatitasCalchaquies.Core.Entities.Animal.cs`
+ * Interfaces TypeScript para el ecosistema de Animales, Alojamiento, Ingreso y Nutrición.
+ * Espejo directo de las clases en `PatitasCalchaquies.Core.Entities`:
+ * - Animal.cs
+ * - Ingreso_Animal.cs (IngresoAnimal)
+ * - Predio.cs, Sector.cs y Alojamiento_Animal.cs (AlojamientoAnimal)
+ * - PlanAlimentacion.cs
+ * - Esterilizacion.cs y Veterinario.cs
  */
+
+export interface PredioDto {
+  idPredio: number;
+  nombre: string;
+  direccion?: string | null;
+  descripcion?: string | null;
+}
+
+export interface SectorDto {
+  idSector: number;
+  nombre: string;
+  capacidad: number;
+  descripcion?: string | null;
+  idPredio: number;
+  predioNombre: string;
+}
+
+export interface IngresoAnimalDto {
+  idIngresoAnimal: number;
+  idAnimal: number;
+  fecha: string;
+  motivo: string;
+  tipoIngreso: string;
+  lugarOrigen?: string | null;
+  observacion?: string | null;
+}
+
+export interface AlojamientoAnimalDto {
+  idAlojamiento: number;
+  idAnimal: number;
+  idSector: number;
+  sectorNombre: string;
+  predioNombre: string;
+  fechaIngreso: string;
+  fechaSalida?: string | null;
+  observacion?: string | null;
+}
+
+export interface PlanAlimentacionDto {
+  idPlan: number;
+  idAnimal: number;
+  tipoAlimento: string;
+  cantidad: number; // en gramos por toma
+  frecuencia: string;
+  observacion?: string | null;
+  fechaDesde: string;
+  fechaHasta?: string | null;
+}
+
+export interface EsterilizacionDto {
+  idEsterilizacion: number;
+  idAnimal: number;
+  idVeterinario: number;
+  veterinarioNombre: string;
+  veterinarioMatricula: string;
+  fecha: string;
+  tipo: string;
+  observacion?: string | null;
+}
+
+export interface VeterinarioDto {
+  idVeterinario: number;
+  matricula: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+}
 
 export interface AnimalDto {
   idAnimal: number;
@@ -17,6 +89,11 @@ export interface AnimalDto {
   estadoNombre?: string;
   fotoUrl?: string;
   observaciones?: string;
+  // Sub-expedientes vinculados en PatitasCalchaquies.Core.Entities
+  ingreso?: IngresoAnimalDto;
+  alojamiento?: AlojamientoAnimalDto;
+  planAlimentacion?: PlanAlimentacionDto;
+  esterilizacion?: EsterilizacionDto;
 }
 
 export interface AnimalCrearDto {
