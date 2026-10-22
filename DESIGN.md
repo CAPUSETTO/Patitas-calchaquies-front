@@ -22,7 +22,9 @@ El sistema de diseño está concebido para uso operativo continuo, priorizando e
 - **Inactivo / Neutral:** `#57534E` sobre fondo `#F5F5F4` (Borde `#E7E5E4`).
 
 ## 3. Tipografía
-- **Familia única:** System UI stack sans-serif (`system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`).
+- **Display / Editorial (`--font-display`):** `Fraunces` (serif óptica cálida para titulares de historias de rescate y cabeceras principales).
+- **Cuerpo y Controles (`--font-sans`):** `Plus Jakarta Sans` (humanista limpia de alta legibilidad al sol).
+- **Datos Clínicos y Códigos (`--font-mono`):** `JetBrains Mono` con `font-variant-numeric: tabular-nums` para códigos de expediente (`CAN-2026-001`), matrículas (`MP-SAL-0418`), DNIs y raciones en gramos.
 - **Escala fija en rem:**
   - `text-xs`: 0.75rem (12px) - Metadatos secundarios
   - `text-sm`: 0.875rem (14px) - Badges, hints
@@ -30,6 +32,7 @@ El sistema de diseño está concebido para uso operativo continuo, priorizando e
   - `text-lg`: 1.125rem (18px) - Subtítulos, cabeceras de tarjeta
   - `text-xl`: 1.25rem (20px) - Títulos de sección
   - `text-2xl`: 1.5rem (24px) - Títulos de página
+  - `clamp(2.15rem, 4vw, 3.5rem)`: Titular de apertura en la Bitácora Pública (`/`)
 
 ## 4. Ergonomía Táctil y Android
 - Área táctil mínima: `44px x 44px` (`min-h-11`, `min-w-11`).

@@ -10,37 +10,47 @@ import {
   KeyRound,
   ArrowRight,
   Calendar,
-  Sparkles,
+  Stethoscope,
+  Utensils,
+  Building2,
   Phone,
-  X,
+  FileText,
 } from 'lucide-react';
 import { Button, Input, Badge, Skeleton, ErrorAlert } from '../components/ui';
 import { animalService } from '../services/animalService';
 import { adopcionService } from '../services/adopcionService';
+import { personaService } from '../services/personaService';
 import { authService } from '../services/authService';
 import type { AnimalDto } from '../types/animal.types';
 
 export const LandingPage: React.FC = () => {
   const session = authService.getCurrentSession();
+  const sectores = animalService.getSectores();
+  const veterinarios = animalService.getVeterinarios();
 
   const [animales, setAnimales] = useState<AnimalDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [animalDestacadoId, setAnimalDestacadoId] = useState<number | null>(null);
   const [filtroEspecie, setFiltroEspecie] = useState<'todos' | 1 | 2>('todos');
+  const [filtroSectorId, setFiltroSectorId] = useState<number | 'todos'>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
 
-  // Estado del formulario público de solicitud de adopción
-  const [animalParaAdoptar, setAnimalParaAdoptar] = useState<AnimalDto | null>(null);
-  const [nombrePostulante, setNombrePostulante] = useState<string>('');
-  const [dniPostulante, setDniPostulante] = useState<string>('');
-  const [telefonoPostulante, setTelefonoPostulante] = useState<string>('');
-  const [localidadPostulante, setLocalidadPostulante] = useState<string>('Cafayate');
-  const [motivoPostulante, setMotivoPostulante] = useState<string>('');
+  // Estado de la Mesa de Postulación Directa (espejo de Persona.cs + Solicitud_Adopcion.cs)
+  const [animalPostulacionId, setAnimalPostulacionId] = useState<number>(1);
+  const [nombre, setNombre] = useState<string>('');
+  const [apellido, setApellido] = useState<string>('');
+  const [dni, setDni] = useState<string>('');
+  const [telefono, setTelefono] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [localidad, setLocalidad] = useState<string>('Cafayate');
+  const [direccion, setDireccion] = useState<string>('');
+  const [observacion, setObservacion] = useState<string>('');
   const [enviandoSolicitud, setEnviandoSolicitud] = useState<boolean>(false);
   const [errorPostulacion, setErrorPostulacion] = useState<string | null>(null);
   const [solicitudExitosa, setSolicitudExitosa] = useState<{
     animalNombre: string;
     codigoSeguimiento: number;
+    sincronizadoMySql: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -54,6 +64,7 @@ export const LandingPage: React.FC = () => {
           const primerDisponible = data.find((a) => a.idEstado === 1) || data[0];
           if (primerDisponible) {
             setAnimalDestacadoId(primerDisponible.idAnimal);
+            setAnimalPostulacionId(primerDisponible.idAnimal);
           }
         }
       } finally {
@@ -67,40 +78,81 @@ export const LandingPage: React.FC = () => {
     };
   }, []);
 
-  const animalesDisponibles = animales.filter((a) => a.idEstado === 1 || a.idEstado === 4);
+  const animalesPostulables = animales.filter((a) => a.idEstado !== 3);
 
   const animalDestacado =
-    animalesDisponibles.find((a) => a.idAnimal === animalDestacadoId) ||
-    animalesDisponibles[0] ||
+    animalesPostulables.find((a) => a.idAnimal === animalDestacadoId) ||
+    animalesPostulables[0] ||
     null;
 
-  const animalesFiltrados = animales.filter((animal) => {
-    if ( animal.idEstado === 3 ) return false; // Ocultar los ya adoptados del catálogo activo
+  const animalEnFormulario =
+    animalesPostulables.find((a) => a.idAnimal === animalPostulacionId) ||
+    animalDestacado ||
+    null;
+
+  const animalesFiltrados = animalesPostulables.filter((animal) => {
     const coincideEspecie =
       filtroEspecie === 'todos' ? true : animal.idEspecie === filtroEspecie;
+    const coincideSector =
+      filtroSectorId === 'todos'
+        ? true
+        : animal.alojamiento?.idSector === filtroSectorId;
     const q = busqueda.trim().toLowerCase();
     const coincideTexto =
       !q ||
       animal.nombre.toLowerCase().includes(q) ||
       (animal.razaNombre && animal.razaNombre.toLowerCase().includes(q)) ||
       animal.codigoIdentificacion.toLowerCase().includes(q) ||
+      (animal.ingreso?.lugarOrigen &&
+        animal.ingreso.lugarOrigen.toLowerCase().includes(q)) ||
       (animal.observaciones && animal.observaciones.toLowerCase().includes(q));
 
-    return coincideEspecie && coincideTexto;
+    return coincideEspecie && coincideSector && coincideTexto;
   });
 
-  const iniciarPostulacion = (animal: AnimalDto) => {
-    setAnimalParaAdoptar(animal);
+  const seleccionarParaAdoptar = (animal: AnimalDto) => {
+    setAnimalPostulacionId(animal.idAnimal);
+    setAnimalDestacadoId(animal.idAnimal);
     setErrorPostulacion(null);
     setSolicitudExitosa(null);
+    const seccion = document.getElementById('postulacion-directa');
+    if (seccion) {
+      seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const inspeccionarExpediente = (animal: AnimalDto) => {
+    setAnimalDestacadoId(animal.idAnimal);
+    const hero = document.getElementById('expediente-activo');
+    if (hero) {
+      hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const handleEnviarSolicitudPublica = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!animalParaAdoptar) return;
+    if (!animalEnFormulario) return;
 
-    if (!nombrePostulante.trim() || !dniPostulante.trim() || !telefonoPostulante.trim()) {
-      setErrorPostulacion('Por favor completa tu nombre, DNI y teléfono de contacto.');
+    const cleanNombre = nombre.trim();
+    const cleanApellido = apellido.trim();
+    const cleanDni = dni.trim();
+    const cleanTelefono = telefono.trim();
+    const cleanDireccion = direccion.trim();
+
+    if (!cleanNombre || !cleanApellido) {
+      setErrorPostulacion('Ingresa tu nombre y apellido tal como figuran en tu documento.');
+      return;
+    }
+    if (!/^\d{7,8}$/.test(cleanDni)) {
+      setErrorPostulacion('El DNI debe contener entre 7 y 8 dígitos numéricos sin puntos (regla de PersonaCreateValidator.cs).');
+      return;
+    }
+    if (!/^\+?\d{6,15}$/.test(cleanTelefono.replace(/\s+/g, ''))) {
+      setErrorPostulacion('Ingresa un teléfono válido de solo dígitos (opcional prefijo +).');
+      return;
+    }
+    if (!cleanDireccion) {
+      setErrorPostulacion('Indica tu domicilio o referencia en el valle para la visita de seguimiento.');
       return;
     }
 
@@ -108,33 +160,60 @@ export const LandingPage: React.FC = () => {
     setErrorPostulacion(null);
 
     try {
-      const observacionCompleta = `[Postulación Web · ${localidadPostulante}] ${
-        motivoPostulante.trim() || 'Interesado en adopción responsable.'
+      let idPersonaRegistrada = Date.now() % 10000;
+      let sincronizadoMySql = false;
+      const direccionCompleta = `${cleanDireccion} (${localidad})`;
+
+      // Intentamos registrar o vincular en el endpoint real api/Personas si la API C# está encendida
+      try {
+        const personaCreada = await personaService.crear({
+          nombre: cleanNombre,
+          apellido: cleanApellido,
+          dni: cleanDni,
+          telefono: cleanTelefono.replace(/\s+/g, ''),
+          email: email.trim() || undefined,
+          direccion: direccionCompleta,
+        });
+        if (personaCreada && personaCreada.idPersona) {
+          idPersonaRegistrada = personaCreada.idPersona;
+          sincronizadoMySql = true;
+        }
+      } catch {
+        // Si la API C# está apagada o el DNI ya existe en MySQL, continuamos con el registro de la SolicitudAdopcion
+      }
+
+      const observacionCompleta = `[Domicilio: ${direccionCompleta}] ${
+        observacion.trim() || 'Compromiso de adopción responsable y seguimiento veterinario.'
       }`;
 
       const creada = await adopcionService.crear(
         {
-          idPersona: Date.now() % 10000,
-          idAnimal: animalParaAdoptar.idAnimal,
+          idPersona: idPersonaRegistrada,
+          idAnimal: animalEnFormulario.idAnimal,
           observacion: observacionCompleta,
         },
         {
-          personaNombre: nombrePostulante.trim(),
-          personaDni: dniPostulante.trim(),
-          personaTelefono: telefonoPostulante.trim(),
-          animalNombre: animalParaAdoptar.nombre,
-          animalCodigo: animalParaAdoptar.codigoIdentificacion,
+          personaNombre: `${cleanNombre} ${cleanApellido}`,
+          personaDni: cleanDni,
+          personaTelefono: cleanTelefono,
+          animalNombre: animalEnFormulario.nombre,
+          animalCodigo: animalEnFormulario.codigoIdentificacion,
         }
       );
 
       setSolicitudExitosa({
-        animalNombre: animalParaAdoptar.nombre,
+        animalNombre: animalEnFormulario.nombre,
         codigoSeguimiento: creada.idSolicitudAdopcion,
+        sincronizadoMySql,
       });
-      setNombrePostulante('');
-      setDniPostulante('');
-      setTelefonoPostulante('');
-      setMotivoPostulante('');
+
+      setNombre('');
+      setApellido('');
+      setDni('');
+      setTelefono('');
+      setEmail('');
+      setDireccion('');
+      setObservacion('');
     } catch (err) {
       setErrorPostulacion(
         err instanceof Error
@@ -147,8 +226,8 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-stone-900 flex flex-col">
-      {/* 1. Navegación Pública Superior */}
+    <div className="min-h-screen bg-[#FAF8F5] text-[#1C1917] flex flex-col">
+      {/* 1. Cabecera Pública con Navegación Directa y Acceso a Gestión Interna */}
       <header className="sticky top-0 z-30 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5DFD7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -156,24 +235,33 @@ export const LandingPage: React.FC = () => {
               <PawPrint className="w-6 h-6 stroke-[2]" />
             </div>
             <div className="min-w-0">
-              <span className="font-bold text-base text-stone-900 block leading-tight truncate">
+              <span
+                className="font-bold text-base sm:text-lg text-stone-900 block leading-tight truncate"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
                 Patitas Calchaquíes
               </span>
               <span className="text-xs text-stone-600 block leading-tight truncate">
-                Refugio y Adopción · Valles Calchaquíes
+                Cafayate · San Carlos · Animaná · Santa María
               </span>
             </div>
           </div>
 
-          <nav aria-label="Navegación pública" className="hidden md:flex items-center gap-6 text-sm font-medium text-stone-700">
+          <nav
+            aria-label="Secciones de la portada"
+            className="hidden lg:flex items-center gap-7 text-sm font-medium text-stone-700"
+          >
+            <a href="#expediente-activo" className="hover:text-[#B84A27] transition-colors">
+              Expedientes clínicos
+            </a>
             <a href="#catalogo-adopcion" className="hover:text-[#B84A27] transition-colors">
-              Compañeros en adopción
+              Censo en adopción
             </a>
-            <a href="#proceso-adopcion" className="hover:text-[#B84A27] transition-colors">
-              Cómo adoptar
+            <a href="#postulacion-directa" className="hover:text-[#B84A27] transition-colors">
+              Formulario de adopción
             </a>
-            <a href="#guardia-regional" className="hover:text-[#B84A27] transition-colors">
-              Guardia en los Valles
+            <a href="#infraestructura-valles" className="hover:text-[#B84A27] transition-colors">
+              Predios y guardia
             </a>
           </nav>
 
@@ -189,7 +277,7 @@ export const LandingPage: React.FC = () => {
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-3.5 min-h-[42px] rounded-lg text-xs sm:text-sm font-semibold text-stone-800 hover:text-stone-900 bg-[#F3EFEA] hover:bg-[#E5DFD7]/70 border border-[#D6CEC2] transition-colors"
+                className="inline-flex items-center gap-2 px-3.5 min-h-[42px] rounded-lg text-xs sm:text-sm font-semibold text-stone-800 hover:text-stone-900 bg-[#F3EFEA] hover:bg-[#E5DFD7]/80 border border-[#D6CEC2] transition-colors"
               >
                 <KeyRound className="w-4 h-4 text-[#B84A27]" />
                 <span>Acceso Personal</span>
@@ -199,92 +287,77 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 2. Primer Viewport: Bitácora Interactiva de Rescate y Adopción (Asimetría 7:5) */}
+      {/* 2. Primer Viewport: Bitácora de Rescate y Expediente Clínico en Vivo (Asimetría 7:5) */}
       <section className="border-b border-[#E5DFD7] bg-[#FAF8F5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            {/* Columna Izquierda (7 cols): Tesis regional + Métricas reales + Selector directo */}
-            <div className="lg:col-span-7 space-y-6">
-              <h1
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight leading-[1.12]"
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                Cada rescate en los Valles tiene nombre, ficha clínica y una familia esperándolo.
-              </h1>
+            {/* Columna Izquierda (7 cols): Narrativa Regional + Selector de Expedientes + Estado de Sectores */}
+            <div className="lg:col-span-7 space-y-7">
+              <div className="space-y-4">
+                <h1
+                  className="text-3xl sm:text-4xl lg:text-[2.85rem] font-bold text-stone-900 tracking-[-0.025em] leading-[1.1]"
+                  style={{ fontFamily: 'var(--font-display)' }}
+                >
+                  Cada rescate en la Ruta 40 tiene nombre, historia clínica y una familia esperándolo.
+                </h1>
 
-              <p className="text-base sm:text-lg text-stone-700 leading-relaxed max-w-2xl">
-                Somos una red comunitaria de rescate, rehabilitación veterinaria y adopción responsable en{' '}
-                <strong className="font-semibold text-stone-900">Cafayate, San Carlos y Santa María</strong>.
-                Todos nuestros compañeros se entregan con control sanitario registrado, desparasitación y seguimiento.
-              </p>
+                <p className="text-base sm:text-lg text-stone-700 leading-relaxed max-w-[66ch]">
+                  En <strong className="font-semibold text-stone-900">Patitas Calchaquíes</strong> registramos cada animal desde su rescate en ruta o paraje rural hasta su alta veterinaria. Explora las fichas reales de nuestro censo, conoce en qué sector están alojados hoy e inicia tu postulación de adopción sin intermediarios.
+                </p>
+              </div>
 
-              {/* Cifras vivas conectadas al servicio */}
-              <dl className="grid grid-cols-3 gap-4 pt-2 border-y border-[#E5DFD7] py-4">
-                <div>
-                  <dt className="text-xs font-medium text-stone-600">Listos para hogar</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-[#2D6A4F] tabular-data mt-0.5">
-                    {isLoading ? '—' : animalesDisponibles.length}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium text-stone-600">Esterilizados</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-stone-900 tabular-data mt-0.5">
-                    {isLoading
-                      ? '—'
-                      : animales.filter((a) => a.castrado).length}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium text-stone-600">Censo activo</dt>
-                  <dd className="text-2xl sm:text-3xl font-bold text-stone-900 tabular-data mt-0.5">
-                    {isLoading ? '—' : animales.length}
-                  </dd>
-                </div>
-              </dl>
-
-              {/* Selector interactivo en el primer viewport */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-stone-700">
-                    Explora los compañeros listos hoy (toca un nombre para ver su ficha):
-                  </span>
+              {/* Selector interactivo de compañeros del censo en el primer viewport */}
+              <div className="space-y-3 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-stone-900">
+                    Selecciona un compañero para abrir su expediente completo:
+                  </h2>
                   <a
                     href="#catalogo-adopcion"
                     className="text-xs font-semibold text-[#B84A27] hover:underline inline-flex items-center gap-1"
                   >
-                    <span>Ver todos</span>
+                    <span>Explorar censo completo ({animalesPostulables.length})</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </a>
                 </div>
 
                 {isLoading ? (
-                  <div className="flex gap-2">
-                    <Skeleton className="h-11 w-28" />
-                    <Skeleton className="h-11 w-28" />
-                    <Skeleton className="h-11 w-28" />
+                  <div className="flex flex-wrap gap-2.5">
+                    <Skeleton className="h-12 w-36 rounded-lg" />
+                    <Skeleton className="h-12 w-36 rounded-lg" />
+                    <Skeleton className="h-12 w-36 rounded-lg" />
                   </div>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {animalesDisponibles.map((animal) => {
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {animalesPostulables.map((animal) => {
                       const activo = animalDestacado?.idAnimal === animal.idAnimal;
                       return (
                         <button
                           key={animal.idAnimal}
                           type="button"
                           onClick={() => setAnimalDestacadoId(animal.idAnimal)}
-                          className={`inline-flex items-center gap-2 px-3.5 min-h-[44px] rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                          className={`flex flex-col items-start justify-between p-3 min-h-[64px] rounded-xl text-left transition-all cursor-pointer border ${
                             activo
-                              ? 'bg-[#B84A27] text-white'
-                              : 'bg-[#F3EFEA] text-stone-800 hover:bg-[#E5DFD7]/80 border border-[#D6CEC2]'
+                              ? 'bg-stone-900 text-white border-stone-900'
+                              : 'bg-white text-stone-900 hover:bg-[#F3EFEA] border-[#D6CEC2]'
                           }`}
                         >
-                          <span>{animal.nombre}</span>
+                          <div className="w-full flex items-center justify-between gap-1.5">
+                            <span className="font-bold text-sm truncate">
+                              {animal.nombre}
+                            </span>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                                animal.idEstado === 1 ? 'bg-emerald-500' : 'bg-amber-500'
+                              }`}
+                            />
+                          </div>
                           <span
-                            className={`text-xs font-mono tabular-data ${
-                              activo ? 'text-amber-100' : 'text-stone-600'
+                            className={`text-[11px] font-mono tabular-data mt-1 ${
+                              activo ? 'text-stone-300' : 'text-stone-600'
                             }`}
                           >
-                            {animal.idEspecie === 1 ? 'Canino' : 'Felino'}
+                            {animal.codigoIdentificacion}
                           </span>
                         </button>
                       );
@@ -292,18 +365,68 @@ export const LandingPage: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Registro vivo de Predios y Sectores (Predio.cs + Sector.cs + Alojamiento_Animal.cs) */}
+              <div className="border-t border-[#D6CEC2] pt-5 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#B84A27]" />
+                    <span>Ocupación actual por Sector del Refugio</span>
+                  </h2>
+                  <span className="text-xs text-stone-600 tabular-data">
+                    2 predios activos en el Valle
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 pt-1">
+                  {sectores.map((sec) => {
+                    const alojadosEnSector = animalesPostulables.filter(
+                      (a) => a.alojamiento?.idSector === sec.idSector
+                    ).length;
+                    const esSectorDelDestacado =
+                      animalDestacado?.alojamiento?.idSector === sec.idSector;
+
+                    return (
+                      <div
+                        key={sec.idSector}
+                        className={`py-2.5 px-3 rounded-lg border transition-colors ${
+                          esSectorDelDestacado
+                            ? 'bg-[#F3EFEA] border-[#B84A27]'
+                            : 'bg-transparent border-[#E5DFD7]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-stone-900 truncate">
+                            {sec.nombre}
+                          </span>
+                          <span className="text-xs font-mono font-semibold text-stone-700 tabular-data shrink-0">
+                            {alojadosEnSector}/{sec.capacidad} plazas
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-600 truncate mt-0.5">
+                          {sec.predioNombre}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* Columna Derecha (5 cols): Ficha Clínica Interactiva en Vivo */}
-            <div className="lg:col-span-5">
+            {/* Columna Derecha (5 cols): Expediente Clínico y de Rescate Completo (Sin tarjetas anidadas) */}
+            <div id="expediente-activo" className="lg:col-span-5">
               {isLoading ? (
                 <div className="bg-white rounded-xl border border-[#E5DFD7] p-6 space-y-4">
-                  <Skeleton className="h-52 w-full rounded-lg" />
-                  <Skeleton className="h-6 w-1/2" />
-                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-60 w-full rounded-lg" />
+                  <Skeleton className="h-7 w-1/2" />
+                  <Skeleton className="h-24 w-full" />
                 </div>
               ) : animalDestacado ? (
-                <article className="bg-white rounded-xl border border-[#E5DFD7] overflow-hidden">
+                <article
+                  key={animalDestacado.idAnimal}
+                  className="dossier-transition bg-white rounded-xl border border-[#D6CEC2] overflow-hidden"
+                >
+                  {/* Fotografía y encabezado de identificación */}
                   {animalDestacado.fotoUrl && (
                     <div className="relative h-56 sm:h-64 w-full bg-stone-200 overflow-hidden border-b border-[#E5DFD7]">
                       <img
@@ -312,61 +435,123 @@ export const LandingPage: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute top-3 left-3">
-                        <Badge variant="success" dot>
-                          {animalDestacado.estadoNombre || 'Disponible para Adopción'}
+                        <Badge
+                          variant={animalDestacado.idEstado === 1 ? 'success' : 'warning'}
+                          dot
+                        >
+                          {animalDestacado.estadoNombre || 'Disponible'}
                         </Badge>
                       </div>
-                      <div className="absolute bottom-3 right-3 bg-stone-900/85 text-stone-100 px-2.5 py-1 rounded-md text-xs font-mono tabular-data">
-                        {animalDestacado.codigoIdentificacion}
+                      <div className="absolute bottom-3 right-3 bg-stone-900/90 text-stone-100 px-2.5 py-1 rounded-md text-xs font-mono tabular-data">
+                        Expediente {animalDestacado.codigoIdentificacion}
                       </div>
                     </div>
                   )}
 
-                  <div className="p-5 sm:p-6 space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h2
-                          className="text-2xl font-bold text-stone-900 tracking-tight"
-                          style={{ fontFamily: 'var(--font-display)' }}
-                        >
-                          {animalDestacado.nombre}
-                        </h2>
-                        <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
-                          {animalDestacado.idEspecie === 1 ? 'Perro' : 'Gato'} ·{' '}
-                          {animalDestacado.razaNombre || 'Mestizo Calchaquí'} ·{' '}
-                          {animalDestacado.idSexo === 1 ? 'Macho' : 'Hembra'}
-                        </p>
+                  {/* Cuerpo del expediente estructurado con divisores limpios de 1px */}
+                  <div className="divide-y divide-[#E5DFD7]">
+                    {/* Bloque 1: Identidad y Carácter */}
+                    <div className="p-5 space-y-2.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h2
+                            className="text-2xl font-bold text-stone-900 tracking-tight"
+                            style={{ fontFamily: 'var(--font-display)' }}
+                          >
+                            {animalDestacado.nombre}
+                          </h2>
+                          <p className="text-xs sm:text-sm text-stone-600 mt-0.5">
+                            {animalDestacado.idEspecie === 1 ? 'Canino' : 'Felino'} ·{' '}
+                            {animalDestacado.razaNombre || 'Mestizo Calchaquí'} ·{' '}
+                            {animalDestacado.idSexo === 1 ? 'Macho' : 'Hembra'}
+                          </p>
+                        </div>
+                        <Badge variant={animalDestacado.castrado ? 'info' : 'neutral'}>
+                          {animalDestacado.castrado ? 'Esterilizado/a' : 'En pre-quirúrgico'}
+                        </Badge>
                       </div>
-                      <Badge variant={animalDestacado.castrado ? 'info' : 'neutral'}>
-                        {animalDestacado.castrado ? 'Castrado/a' : 'Castración programada'}
-                      </Badge>
+
+                      <p className="text-sm text-stone-700 leading-relaxed">
+                        {animalDestacado.observaciones}
+                      </p>
                     </div>
 
-                    <p className="text-sm text-stone-700 leading-relaxed">
-                      {animalDestacado.observaciones ||
-                        'Rescatado en los Valles Calchaquíes. Se encuentra desparasitado, con control clínico al día y listo para integrarse a una familia.'}
-                    </p>
+                    {/* Bloque 2: Acta de Ingreso y Alojamiento (Ingreso_Animal.cs + Alojamiento_Animal.cs) */}
+                    <dl className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="space-y-1">
+                        <dt className="font-semibold text-stone-600 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-[#B84A27]" />
+                          Origen del rescate
+                        </dt>
+                        <dd className="font-medium text-stone-900">
+                          {animalDestacado.ingreso?.lugarOrigen || 'Cafayate · Valles Calchaquíes'}
+                        </dd>
+                        <dd className="text-stone-600 tabular-data">
+                          {animalDestacado.ingreso?.tipoIngreso || 'Rescate comunitario'} ({animalDestacado.fechaIngreso})
+                        </dd>
+                      </div>
 
-                    <div className="flex items-center justify-between text-xs text-stone-600 pt-2 border-t border-[#E5DFD7] tabular-data">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-stone-500" />
-                        Ingreso: {animalDestacado.fechaIngreso}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[#2D6A4F] font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Apto veterinario
-                      </span>
+                      <div className="space-y-1">
+                        <dt className="font-semibold text-stone-600 flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                          Ubicación en el refugio
+                        </dt>
+                        <dd className="font-medium text-stone-900">
+                          {animalDestacado.alojamiento?.sectorNombre || 'Sector A · Caniles de Sol'}
+                        </dd>
+                        <dd className="text-stone-600">
+                          {animalDestacado.alojamiento?.predioNombre || 'Predio Central Ruta 40'}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    {/* Bloque 3: Plan Nutricional y Certificación Clínica (PlanAlimentacion.cs + Esterilizacion.cs) */}
+                    <dl className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-[#FAF8F5]/60">
+                      <div className="space-y-1">
+                        <dt className="font-semibold text-stone-600 flex items-center gap-1.5">
+                          <Utensils className="w-3.5 h-3.5 text-[#B84A27]" />
+                          Plan de alimentación
+                        </dt>
+                        <dd className="font-medium text-stone-900">
+                          {animalDestacado.planAlimentacion?.tipoAlimento || 'Balanceado Adulto'}
+                        </dd>
+                        <dd className="text-stone-600 tabular-data">
+                          {animalDestacado.planAlimentacion
+                            ? `${animalDestacado.planAlimentacion.cantidad} g · ${animalDestacado.planAlimentacion.frecuencia}`
+                            : '2 raciones diarias controladas'}
+                        </dd>
+                      </div>
+
+                      <div className="space-y-1">
+                        <dt className="font-semibold text-stone-600 flex items-center gap-1.5">
+                          <Stethoscope className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                          Aval veterinario
+                        </dt>
+                        <dd className="font-medium text-stone-900">
+                          {animalDestacado.esterilizacion
+                            ? `${animalDestacado.esterilizacion.tipo}`
+                            : 'Control clínico semanal'}
+                        </dd>
+                        <dd className="text-stone-600 tabular-data">
+                          {animalDestacado.esterilizacion
+                            ? `${animalDestacado.esterilizacion.veterinarioNombre} (${animalDestacado.esterilizacion.veterinarioMatricula})`
+                            : 'Dr. Lucas Tolaba (MP-SAL-0291)'}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    {/* Bloque 4: Acción directa hacia la Mesa de Postulación */}
+                    <div className="p-5 bg-white">
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        onClick={() => seleccionarParaAdoptar(animalDestacado)}
+                        leftIcon={<HeartHandshake className="w-5 h-5" />}
+                      >
+                        Postularme para adoptar a {animalDestacado.nombre}
+                      </Button>
                     </div>
-
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      fullWidth
-                      onClick={() => iniciarPostulacion(animalDestacado)}
-                      leftIcon={<HeartHandshake className="w-5 h-5" />}
-                    >
-                      Postularme para adoptar a {animalDestacado.nombre}
-                    </Button>
                   </div>
                 </article>
               ) : null}
@@ -375,22 +560,25 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Catálogo Abierto de Compañeros en el Refugio */}
-      <section id="catalogo-adopcion" className="py-12 sm:py-16 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#E5DFD7] pb-5">
+      {/* 3. Censo Abierto de Compañeros con Filtros por Especie y Sector */}
+      <section
+        id="catalogo-adopcion"
+        className="py-12 sm:py-16 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-8"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-[#E5DFD7] pb-5">
           <div>
             <h2
               className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Compañeros buscando hogar en el Valle
+              Censo abierto de compañeros en el Valle
             </h2>
-            <p className="text-sm sm:text-base text-stone-600 mt-1">
-              Filtra por especie o busca por nombre. Tu postulación llega en tiempo real al tablero del equipo de adopciones.
+            <p className="text-sm sm:text-base text-stone-600 mt-1 max-w-[65ch]">
+              Cada ficha refleja los datos reales de ingreso, sector de alojamiento y estado sanitario. Puedes filtrar por especie o por el sector físico donde se encuentran hoy.
             </p>
           </div>
 
-          {/* Controles de filtrado */}
+          {/* Filtros rápidos de especie */}
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -401,7 +589,7 @@ export const LandingPage: React.FC = () => {
                   : 'bg-[#F3EFEA] text-stone-700 hover:text-stone-900 border border-[#D6CEC2]'
               }`}
             >
-              Todos ({animales.filter((a) => a.idEstado !== 3).length})
+              Todos ({animalesPostulables.length})
             </button>
             <button
               type="button"
@@ -412,7 +600,7 @@ export const LandingPage: React.FC = () => {
                   : 'bg-[#F3EFEA] text-stone-700 hover:text-stone-900 border border-[#D6CEC2]'
               }`}
             >
-              Perros
+              Caninos ({animalesPostulables.filter((a) => a.idEspecie === 1).length})
             </button>
             <button
               type="button"
@@ -423,85 +611,139 @@ export const LandingPage: React.FC = () => {
                   : 'bg-[#F3EFEA] text-stone-700 hover:text-stone-900 border border-[#D6CEC2]'
               }`}
             >
-              Gatos
+              Felinos ({animalesPostulables.filter((a) => a.idEspecie === 2).length})
             </button>
           </div>
         </div>
 
-        {/* Buscador */}
-        <div className="max-w-md">
-          <div className="relative">
+        {/* Barra combinada de búsqueda por origen/nombre y filtro por Sector */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+          <div className="md:col-span-6 relative">
             <Search className="w-4 h-4 text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="search"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por nombre, raza o carácter..."
+              placeholder="Buscar por nombre, código, raza o paraje de rescate..."
+              aria-label="Buscar animales en adopción"
               className="w-full min-h-[44px] pl-10 pr-4 py-2 rounded-lg border border-[#D6CEC2] bg-white text-sm text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
             />
           </div>
+
+          <div className="md:col-span-6 flex items-center gap-2 overflow-x-auto pb-1">
+            <button
+              type="button"
+              onClick={() => setFiltroSectorId('todos')}
+              className={`px-3 min-h-[40px] rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                filtroSectorId === 'todos'
+                  ? 'bg-[#B84A27] text-white'
+                  : 'bg-white text-stone-700 hover:bg-[#F3EFEA] border border-[#D6CEC2]'
+              }`}
+            >
+              Todos los sectores
+            </button>
+            {sectores.map((sec) => (
+              <button
+                key={sec.idSector}
+                type="button"
+                onClick={() => setFiltroSectorId(sec.idSector)}
+                className={`px-3 min-h-[40px] rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  filtroSectorId === sec.idSector
+                    ? 'bg-[#B84A27] text-white'
+                    : 'bg-white text-stone-700 hover:bg-[#F3EFEA] border border-[#D6CEC2]'
+                }`}
+              >
+                {sec.nombre}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Grilla de fichas de adopción */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Listado de Fichas del Censo (Sin tarjetas anidadas) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {animalesFiltrados.map((animal) => (
             <article
               key={animal.idAnimal}
-              className="bg-white rounded-xl border border-[#E5DFD7] overflow-hidden flex flex-col justify-between"
+              className="bg-white rounded-xl border border-[#D6CEC2] overflow-hidden flex flex-col justify-between"
             >
               <div>
-                {animal.fotoUrl && (
-                  <div className="relative h-48 w-full bg-stone-200 border-b border-[#E5DFD7]">
-                    <img
-                      src={animal.fotoUrl}
-                      alt={animal.nombre}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <Badge
-                        variant={animal.idEstado === 1 ? 'success' : 'warning'}
-                        dot
-                      >
-                        {animal.estadoNombre || 'Disponible'}
-                      </Badge>
+                <div className="grid grid-cols-1 sm:grid-cols-12 border-b border-[#E5DFD7]">
+                  {animal.fotoUrl && (
+                    <div className="sm:col-span-5 relative h-48 sm:h-full min-h-[180px] bg-stone-200">
+                      <img
+                        src={animal.fotoUrl}
+                        alt={animal.nombre}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2.5 left-2.5">
+                        <Badge
+                          variant={animal.idEstado === 1 ? 'success' : 'warning'}
+                          dot
+                        >
+                          {animal.idEstado === 1 ? 'Disponible' : 'En observación'}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-stone-900">
-                        {animal.nombre}
-                      </h3>
-                      <p className="text-xs text-stone-600">
+                  <div className="sm:col-span-7 p-5 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3
+                          className="text-xl font-bold text-stone-900"
+                          style={{ fontFamily: 'var(--font-display)' }}
+                        >
+                          {animal.nombre}
+                        </h3>
+                        <span className="text-xs font-mono text-stone-600 tabular-data">
+                          {animal.codigoIdentificacion}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-stone-600">
                         {animal.razaNombre || 'Mestizo'} ·{' '}
-                        {animal.idSexo === 1 ? 'Macho' : 'Hembra'}
+                        {animal.idSexo === 1 ? 'Macho' : 'Hembra'} ·{' '}
+                        {animal.castrado ? 'Castrado/a' : 'Castración programada'}
+                      </p>
+                      <p className="text-xs sm:text-sm text-stone-700 leading-relaxed line-clamp-3 pt-1">
+                        {animal.observaciones}
                       </p>
                     </div>
-                    <span className="text-xs font-mono text-stone-600 tabular-data">
-                      {animal.codigoIdentificacion}
-                    </span>
-                  </div>
 
-                  <p className="text-xs sm:text-sm text-stone-700 leading-relaxed line-clamp-3">
-                    {animal.observaciones ||
-                      'Compañero rehabilitado por el equipo del refugio, con controles sanitarios completos.'}
-                  </p>
+                    <div className="pt-2 border-t border-[#F3EFEA] space-y-1 text-xs text-stone-600">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-[#B84A27] shrink-0" />
+                        <span className="truncate">
+                          {animal.ingreso?.lugarOrigen || 'Cafayate'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Building2 className="w-3.5 h-3.5 text-[#2D6A4F] shrink-0" />
+                        <span className="truncate">
+                          {animal.alojamiento?.sectorNombre || 'Sector A · Caniles de Sol'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="px-5 pb-5 pt-2 flex items-center justify-between gap-3 border-t border-[#F3EFEA]">
-                <span className="text-xs font-medium text-stone-600">
-                  {animal.castrado ? 'Castrado/a' : 'En plan sanitario'}
-                </span>
+              <div className="px-5 py-3.5 bg-[#FAF8F5] flex flex-wrap items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => inspeccionarExpediente(animal)}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 hover:text-[#B84A27] py-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Ver expediente clínico</span>
+                </button>
+
                 <Button
                   variant={animal.idEstado === 1 ? 'primary' : 'outline'}
                   size="sm"
-                  onClick={() => iniciarPostulacion(animal)}
+                  onClick={() => seleccionarParaAdoptar(animal)}
                   leftIcon={<HeartHandshake className="w-4 h-4" />}
                 >
-                  Solicitar adopción
+                  Postularme para adoptar
                 </Button>
               </div>
             </article>
@@ -509,244 +751,349 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Proceso de Adopción Responsable (Estructura de bitácora lineal sin tarjetas anidadas) */}
-      <section id="proceso-adopcion" className="border-t border-[#E5DFD7] bg-[#F3EFEA]/70 py-12 sm:py-16">
+      {/* 4. Mesa de Postulación Directa (Inline Workbench — Sin Modal, conectada a Persona.cs y Solicitud_Adopcion.cs) */}
+      <section
+        id="postulacion-directa"
+        className="border-t border-[#D6CEC2] bg-[#F3EFEA] py-12 sm:py-16"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            {/* Columna Izquierda (5 cols): Compañero elegido y Compromiso de SeguimientoAdopcion */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="space-y-2">
+                <h2
+                  className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight"
+                  style={{ fontFamily: 'var(--font-display)' }}
+                >
+                  Solicitud de Adopción Responsable
+                </h2>
+                <p className="text-sm sm:text-base text-stone-700 leading-relaxed">
+                  Al enviar este formulario, tus datos se validan con las reglas de{' '}
+                  <code className="font-mono text-xs text-stone-900">PersonaCreateValidator</code> y generan una{' '}
+                  <code className="font-mono text-xs text-stone-900">SolicitudAdopcion</code> que el equipo del refugio gestiona desde el panel operativo.
+                </p>
+              </div>
+
+              {/* Selector rápido del animal dentro del formulario */}
+              <div className="space-y-2 pt-2 border-t border-[#D6CEC2]">
+                <label
+                  htmlFor="selector-animal-postulacion"
+                  className="block text-sm font-bold text-stone-900"
+                >
+                  Compañero por el que te postulas
+                </label>
+                <select
+                  id="selector-animal-postulacion"
+                  value={animalPostulacionId}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    setAnimalPostulacionId(id);
+                    setAnimalDestacadoId(id);
+                    setSolicitudExitosa(null);
+                  }}
+                  className="w-full min-h-[46px] px-3.5 py-2.5 rounded-lg border border-[#D6CEC2] bg-white text-sm font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
+                >
+                  {animalesPostulables.map((a) => (
+                    <option key={a.idAnimal} value={a.idAnimal}>
+                      {a.nombre} ({a.codigoIdentificacion}) — {a.razaNombre || 'Mestizo'} ·{' '}
+                      {a.alojamiento?.sectorNombre || 'Predio Central'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Protocolo de SeguimientoAdopcion (Seguimiento_Adopcion.cs) */}
+              <div className="border-t border-[#D6CEC2] pt-5 space-y-4">
+                <h3 className="text-sm font-bold text-stone-900">
+                  Etapas del protocolo de adopción en los Valles
+                </h3>
+
+                <ol className="space-y-3 text-xs sm:text-sm text-stone-700">
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#B84A27] shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="font-semibold text-stone-900">Recepción en vivo:</strong>{' '}
+                      Tu postulación ingresa con estado <em>Pendiente</em> al tablero de coordinación.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#2D6A4F] shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="font-semibold text-stone-900">Visita al predio o videollamada:</strong>{' '}
+                      Conoces a {animalEnFormulario?.nombre || 'tu futuro compañero'} en su sector actual y conversamos sobre el cerramiento de tu hogar.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#B84A27] shrink-0 mt-0.5" />
+                    <span>
+                      <strong className="font-semibold text-stone-900">Seguimiento post-adopción:</strong>{' '}
+                      Registramos controles a los 15 y 60 días para acompañar su adaptación familiar.
+                    </span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Columna Derecha (7 cols): Formulario de Postulación Directa */}
+            <div className="lg:col-span-7 bg-white rounded-xl border border-[#D6CEC2] p-6 sm:p-8">
+              {solicitudExitosa ? (
+                <div className="space-y-5 py-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-7 h-7 text-[#2D6A4F] shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h3
+                        className="text-xl font-bold text-stone-900"
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        ¡Postulación registrada para adoptar a {solicitudExitosa.animalNombre}!
+                      </h3>
+                      <p className="text-sm text-stone-700 leading-relaxed">
+                        Tu trámite quedó asentado con el código{' '}
+                        <strong className="font-mono tabular-data text-stone-900">
+                          #SOL-{solicitudExitosa.codigoSeguimiento}
+                        </strong>
+                        {solicitudExitosa.sincronizadoMySql
+                          ? ' y tu ficha de adoptante se guardó directamente en la base MySQL (api/Personas).'
+                          : ' en el registro operativo del refugio.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-[#E5DFD7] flex flex-wrap items-center justify-between gap-3">
+                    <Link
+                      to={session ? '/admin/adopciones' : '/login'}
+                      className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#B84A27] hover:underline"
+                    >
+                      <span>Ver esta solicitud en el Panel de Adopciones (/admin/adopciones)</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSolicitudExitosa(null)}
+                    >
+                      Enviar otra postulación
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleEnviarSolicitudPublica} className="space-y-5">
+                  <div className="border-b border-[#E5DFD7] pb-4 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-stone-900">
+                        Datos del postulante ({animalEnFormulario?.nombre})
+                      </h3>
+                      <p className="text-xs text-stone-600">
+                        Campos requeridos por el padrón de adoptantes del refugio.
+                      </p>
+                    </div>
+                    {animalEnFormulario && (
+                      <span className="text-xs font-mono font-semibold text-stone-700 bg-[#F3EFEA] px-2.5 py-1 rounded-md tabular-data">
+                        {animalEnFormulario.codigoIdentificacion}
+                      </span>
+                    )}
+                  </div>
+
+                  {errorPostulacion && (
+                    <ErrorAlert
+                      title="Verifica los datos ingresados"
+                      message={errorPostulacion}
+                    />
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      label="Nombre"
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      placeholder="Ej. Lucía"
+                      required
+                    />
+                    <Input
+                      label="Apellido"
+                      value={apellido}
+                      onChange={(e) => setApellido(e.target.value)}
+                      placeholder="Ej. Carrizo"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      label="DNI (7 a 8 dígitos sin puntos)"
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value)}
+                      placeholder="Ej. 39482110"
+                      required
+                    />
+                    <Input
+                      label="Teléfono / WhatsApp"
+                      value={telefono}
+                      onChange={(e) => setTelefono(e.target.value)}
+                      placeholder="Ej. +543868451234"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      label="Correo electrónico (opcional)"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="lucia.carrizo@correo.com"
+                    />
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="localidad-valle"
+                        className="block text-sm font-semibold text-stone-800"
+                      >
+                        Localidad en los Valles
+                      </label>
+                      <select
+                        id="localidad-valle"
+                        value={localidad}
+                        onChange={(e) => setLocalidad(e.target.value)}
+                        className="w-full min-h-[44px] px-3.5 py-2 rounded-lg border border-[#D6CEC2] bg-white text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
+                      >
+                        <option value="Cafayate">Cafayate</option>
+                        <option value="San Carlos">San Carlos</option>
+                        <option value="Animaná">Animaná</option>
+                        <option value="Amaicha del Valle">Amaicha del Valle</option>
+                        <option value="Santa María">Santa María</option>
+                        <option value="Salta Capital / Tucumán">Salta Capital / Tucumán</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <Input
+                    label="Dirección o referencia en el valle"
+                    value={direccion}
+                    onChange={(e) => setDireccion(e.target.value)}
+                    placeholder="Ej. Calle Nuestra Señora del Rosario 420"
+                    required
+                  />
+
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="observacion-hogar"
+                      className="block text-sm font-semibold text-stone-800"
+                    >
+                      Características de tu hogar (cerramiento, patio, otros animales)
+                    </label>
+                    <textarea
+                      id="observacion-hogar"
+                      rows={3}
+                      value={observacion}
+                      onChange={(e) => setObservacion(e.target.value)}
+                      placeholder="Cuéntanos cómo es el espacio donde vivirá y si ya convives con otras mascotas..."
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#D6CEC2] bg-white text-sm text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      isLoading={enviandoSolicitud}
+                      leftIcon={<HeartHandshake className="w-5 h-5" />}
+                    >
+                      Registrar solicitud para adoptar a {animalEnFormulario?.nombre}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Infraestructura del Refugio y Equipo Veterinario Matriculado (Predio.cs + Veterinario.cs) */}
+      <section
+        id="infraestructura-valles"
+        className="border-t border-[#E5DFD7] bg-[#FAF8F5] py-12 sm:py-16"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="max-w-2xl">
             <h2
               className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Cómo funciona la adopción responsable
+              Guardia veterinaria y predios en los Valles Calchaquíes
             </h2>
             <p className="text-sm sm:text-base text-stone-600 mt-1.5">
-              Un proceso simple y transparente pensado para cuidar tanto al animal rescatado como a su nueva familia.
+              Toda esterilización, vacunación e internación es firmada por profesionales matriculados y asentada en el historial clínico del refugio.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#D6CEC2] border-y border-[#D6CEC2]">
-            <div className="py-6 md:pr-8 space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-stone-900">
-                  1. Postulación desde tu celular
-                </h3>
-                <Sparkles className="w-4 h-4 text-[#B84A27]" />
+            {veterinarios.map((vet) => (
+              <div key={vet.idVeterinario} className="py-6 md:px-6 first:md:pl-0 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-stone-900">
+                    Dr/a. {vet.nombre} {vet.apellido}
+                  </h3>
+                  <span className="text-xs font-mono font-semibold text-[#2D6A4F] tabular-data">
+                    {vet.matricula}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                  Responsable de cirugía de esterilización, plan de inmunización y alta clínica en el Predio Central de Cafayate.
+                </p>
+                <p className="text-xs font-mono text-stone-600 tabular-data pt-1">
+                  Guardia: {vet.telefono}
+                </p>
               </div>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                Eliges al compañero en esta página y completas tus datos básicos. La solicitud impacta al instante en el sistema del refugio.
-              </p>
-            </div>
+            ))}
 
-            <div className="py-6 md:px-8 space-y-2">
-              <div className="flex items-center justify-between">
+            <div className="py-6 md:pl-6 space-y-2">
+              <div className="flex items-center justify-between gap-2">
                 <h3 className="text-base font-bold text-stone-900">
-                  2. Entrevista y visita en el Valle
+                  Visitas y Recepción en Ruta 40
                 </h3>
-                <MapPin className="w-4 h-4 text-[#2D6A4F]" />
+                <Calendar className="w-4 h-4 text-[#B84A27]" />
               </div>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                Coordinamos un encuentro en nuestro predio de Cafayate o por videollamada para conocer el espacio donde vivirá.
+              <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                Predio Central Km 4340 (Cafayate) y Posta Sanitaria San Carlos. Abierto de lunes a sábado de 09:30 a 18:00 hs.
               </p>
-            </div>
-
-            <div className="py-6 md:pl-8 space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-stone-900">
-                  3. Entrega con libreta sanitaria
-                </h3>
-                <ShieldCheck className="w-4 h-4 text-[#B84A27]" />
-              </div>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                Firmamos el compromiso de adopción y te entregamos el historial completo de vacunas y atenciones registradas en nuestra base.
+              <p className="text-xs font-semibold text-[#B84A27] pt-1">
+                Emergencias viales las 24 hs
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. Pie de Página Público y Guardia Regional */}
-      <footer id="guardia-regional" className="border-t border-[#E5DFD7] bg-[#FAF8F5] py-10 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      {/* 6. Pie de Página */}
+      <footer className="border-t border-[#E5DFD7] bg-[#F3EFEA] py-8 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-stone-900">
-              Refugio Patitas Calchaquíes · Ruta Nacional 40, Cafayate
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-600 flex flex-wrap items-center gap-4 tabular-data">
-              <span className="inline-flex items-center gap-1.5">
+            <p className="text-sm font-bold text-stone-900">
+              Patitas Calchaquíes · Sistema Integral de Refugio y Adopción
+            </p>
+            <p className="text-xs text-stone-600 flex flex-wrap items-center gap-3 tabular-data">
+              <span className="inline-flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5 text-[#B84A27]" />
-                Guardia de emergencias: +54 3868 42-1900
+                +54 3868 42-1900
               </span>
-              <span>Atención de visitas: Lunes a Sábado de 9:30 a 18:00 hs</span>
+              <span>·</span>
+              <span>Taller de Desarrollo de Software (Arquitectura 3 Capas C# + React TS)</span>
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              to={session ? '/admin' : '/login'}
-              className="inline-flex items-center gap-2 px-4 min-h-[42px] rounded-lg text-xs sm:text-sm font-semibold text-stone-800 bg-[#F3EFEA] hover:bg-[#E5DFD7] border border-[#D6CEC2] transition-colors"
-            >
-              <KeyRound className="w-4 h-4 text-[#B84A27]" />
-              <span>{session ? 'Ir al Dashboard Administrativo' : 'Ingreso Personal / Veterinaria'}</span>
-            </Link>
-          </div>
+          <Link
+            to={session ? '/admin' : '/login'}
+            className="inline-flex items-center gap-2 px-4 min-h-[42px] rounded-lg text-xs sm:text-sm font-semibold text-stone-900 bg-white hover:bg-[#FAF8F5] border border-[#D6CEC2] transition-colors"
+          >
+            <KeyRound className="w-4 h-4 text-[#B84A27]" />
+            <span>{session ? 'Abrir Dashboard Operativo (/admin)' : 'Acceso Personal / Veterinaria'}</span>
+          </Link>
         </div>
       </footer>
-
-      {/* Modal de Solicitud Pública de Adopción (Conectado con adopcionService) */}
-      {animalParaAdoptar && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="titulo-modal-adopcion"
-          className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div className="bg-[#FAF8F5] border border-[#D6CEC2] rounded-xl max-w-lg w-full p-6 space-y-5 my-8">
-            <div className="flex items-start justify-between gap-3 border-b border-[#E5DFD7] pb-4">
-              <div>
-                <h2
-                  id="titulo-modal-adopcion"
-                  className="text-xl font-bold text-stone-900"
-                  style={{ fontFamily: 'var(--font-display)' }}
-                >
-                  Postulación para adoptar a {animalParaAdoptar.nombre}
-                </h2>
-                <p className="text-xs text-stone-600 mt-0.5 tabular-data">
-                  Ficha {animalParaAdoptar.codigoIdentificacion} ·{' '}
-                  {animalParaAdoptar.razaNombre || 'Mestizo Calchaquí'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAnimalParaAdoptar(null)}
-                className="p-2 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-[#E5DFD7]/50 cursor-pointer"
-                aria-label="Cerrar ventana"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {solicitudExitosa ? (
-              <div className="space-y-4 py-2">
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
-                  <div className="flex items-center gap-2 font-bold text-base">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
-                    <span>¡Solicitud registrada en el refugio!</span>
-                  </div>
-                  <p className="text-xs sm:text-sm leading-relaxed">
-                    Tu postulación para adoptar a <strong>{solicitudExitosa.animalNombre}</strong> quedó
-                    registrada con el número de trámite{' '}
-                    <strong className="font-mono tabular-data">
-                      #{solicitudExitosa.codigoSeguimiento}
-                    </strong>
-                    . Si ingresas ahora al panel de administración (<code className="font-mono">/admin/adopciones</code>),
-                    verás esta solicitud lista para aprobar.
-                  </p>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="primary"
-                    onClick={() => setAnimalParaAdoptar(null)}
-                  >
-                    Entendido
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleEnviarSolicitudPublica} className="space-y-4">
-                {errorPostulacion && (
-                  <ErrorAlert
-                    title="Revisa los datos del formulario"
-                    message={errorPostulacion}
-                  />
-                )}
-
-                <Input
-                  label="Tu nombre y apellido"
-                  value={nombrePostulante}
-                  onChange={(e) => setNombrePostulante(e.target.value)}
-                  placeholder="Ej. Lucía Carrizo"
-                  required
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="DNI (sin puntos)"
-                    value={dniPostulante}
-                    onChange={(e) => setDniPostulante(e.target.value)}
-                    placeholder="Ej. 39482110"
-                    required
-                  />
-                  <Input
-                    label="Teléfono / WhatsApp"
-                    value={telefonoPostulante}
-                    onChange={(e) => setTelefonoPostulante(e.target.value)}
-                    placeholder="Ej. +54 3868 451234"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="localidad-postulante"
-                    className="block text-sm font-semibold text-stone-800"
-                  >
-                    Localidad en los Valles
-                  </label>
-                  <select
-                    id="localidad-postulante"
-                    value={localidadPostulante}
-                    onChange={(e) => setLocalidadPostulante(e.target.value)}
-                    className="w-full min-h-[44px] px-3.5 py-2 rounded-lg border border-[#D6CEC2] bg-white text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
-                  >
-                    <option value="Cafayate">Cafayate</option>
-                    <option value="San Carlos">San Carlos</option>
-                    <option value="Animaná">Animaná</option>
-                    <option value="Amaicha del Valle">Amaicha del Valle</option>
-                    <option value="Santa María">Santa María</option>
-                    <option value="Salta Capital / Tucumán">Salta Capital / Tucumán</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="motivo-postulante"
-                    className="block text-sm font-semibold text-stone-800"
-                  >
-                    Cuéntanos sobre tu hogar (patio, cerramiento, otros animales)
-                  </label>
-                  <textarea
-                    id="motivo-postulante"
-                    rows={3}
-                    value={motivoPostulante}
-                    onChange={(e) => setMotivoPostulante(e.target.value)}
-                    placeholder="Ej. Vivo en casa con patio tapiado en Cafayate, buscamos un compañero para la familia..."
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#D6CEC2] bg-white text-sm text-stone-900 placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#B84A27]"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E5DFD7]">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setAnimalParaAdoptar(null)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    isLoading={enviandoSolicitud}
-                    leftIcon={<HeartHandshake className="w-4 h-4" />}
-                  >
-                    Enviar solicitud de adopción
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

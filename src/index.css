@@ -16,11 +16,19 @@
   --color-surface: #ffffff;
   --color-panel: #f3efea;
   --color-border-subtle: #e5dfd7;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
   color-scheme: light;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: var(--font-sans);
   background-color: #faf8f5;
   color: #1c1917;
   caret-color: #b84a27;
@@ -29,6 +37,26 @@
 ::selection {
   background-color: #ebd8c0;
   color: #1c1917;
+}
+
+/* Enlaces y foco de teclado tematizados según craft-floor.md */
+a {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+:focus-visible {
+  outline: 2px solid #b84a27;
+  outline-offset: 2px;
+}
+
+/* Balanceo tipográfico en titulares */
+h1, h2, h3, h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 /* Scrollbar integrada a la paleta Tierra y Pizarra */
@@ -50,9 +78,31 @@
   background: #b84a27;
 }
 
-/* Números tabulares alineados para DNI, teléfonos, fechas e IDs */
+/* Números tabulares alineados para DNI, teléfonos, fechas, raciones e IDs */
 .tabular-data {
   font-variant-numeric: tabular-nums;
+}
+
+/* Transición suave de ficha activa (un único momento de movimiento con ease-out exponencial) */
+@keyframes dossierReveal {
+  from {
+    opacity: 0.72;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dossier-transition {
+  animation: dossierReveal 240ms var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dossier-transition {
+    animation: none;
+  }
 }
 
 /* Safe areas para notch y barra de navegación gestual de Android */
