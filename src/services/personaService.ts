@@ -69,12 +69,14 @@ export const personaService = {
    * Crea una nueva persona validando con `PersonaCreateValidator` en el backend.
    */
   async crear(dto: PersonaCrearDto): Promise<PersonaDto> {
+    const cleanDni = dto.dni.replace(/\D/g, '');
+    const cleanPhone = dto.telefono.replace(/[^\d+]/g, '');
     const payload: PersonaCrearDto = {
       apellido: dto.apellido.trim(),
       nombre: dto.nombre.trim(),
-      dni: dto.dni.trim(),
-      telefono: dto.telefono.trim(),
-      direccion: dto.direccion.trim(),
+      dni: cleanDni || dto.dni.trim(),
+      telefono: cleanPhone || dto.telefono.trim(),
+      direccion: (dto.direccion ?? '').trim() || 'Valles Calchaquíes',
       email: dto.email && dto.email.trim().length > 0 ? dto.email.trim() : undefined,
     };
     const response = await axiosClient.post<PersonaDto>(BASE_PATH, payload);
@@ -86,13 +88,15 @@ export const personaService = {
    * Actualiza los datos de una persona existente (`id` debe coincidir con `dto.idPersona`).
    */
   async actualizar(id: number, dto: PersonaActualizarDto): Promise<PersonaDto> {
+    const cleanDni = dto.dni.replace(/\D/g, '');
+    const cleanPhone = dto.telefono.replace(/[^\d+]/g, '');
     const payload: PersonaActualizarDto = {
       idPersona: id,
       apellido: dto.apellido.trim(),
       nombre: dto.nombre.trim(),
-      dni: dto.dni.trim(),
-      telefono: dto.telefono.trim(),
-      direccion: dto.direccion.trim(),
+      dni: cleanDni || dto.dni.trim(),
+      telefono: cleanPhone || dto.telefono.trim(),
+      direccion: (dto.direccion ?? '').trim() || 'Valles Calchaquíes',
       email: dto.email && dto.email.trim().length > 0 ? dto.email.trim() : undefined,
       activo: dto.activo,
     };

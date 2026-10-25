@@ -78,8 +78,8 @@ export const HomePage: React.FC = () => {
       detalle: 'Fichas de rescate, sectores, nutrición y estados',
       icono: Dog,
       contador: `${animales.length} fichas`,
-      origen: 'Core · Animal.cs',
-      esReal: false,
+      origen: 'api/Animales',
+      esReal: true,
     },
     {
       nombre: 'Solicitudes de Adopción',
@@ -87,8 +87,8 @@ export const HomePage: React.FC = () => {
       detalle: 'Aprobación de postulaciones web y contratos',
       icono: HeartHandshake,
       contador: `${solicitudesPendientes.length} pendientes`,
-      origen: 'Core · SolicitudAdopcion.cs',
-      esReal: false,
+      origen: 'api/SolicitudesAdopciones',
+      esReal: true,
     },
     {
       nombre: 'Atenciones Veterinarias',
@@ -96,8 +96,8 @@ export const HomePage: React.FC = () => {
       detalle: 'Consultas, diagnósticos, vacunas y tratamientos',
       icono: Stethoscope,
       contador: `${totalAtenciones} registros`,
-      origen: 'Core · Atencion_Veterinario.cs',
-      esReal: false,
+      origen: 'api/AtencionesVeterinarias',
+      esReal: true,
     },
     {
       nombre: 'Padrón de Personas',

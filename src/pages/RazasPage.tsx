@@ -18,7 +18,12 @@ import {
 } from '../components/ui';
 import { razaService } from '../services/razaService';
 import { extractApiErrorMessage } from '../api/axiosClient';
-import { RazaDto, RazaCrearDto, ESPECIES_REFUGIO } from '../types/raza.types';
+import {
+  RazaDto,
+  RazaCrearDto,
+  ESPECIES_REFUGIO,
+  EspecieCatalogItem,
+} from '../types/raza.types';
 
 type VistaActiva = 'listado' | 'formulario';
 
@@ -34,6 +39,7 @@ const FORM_INICIAL: RazaCrearDto = {
 
 export const RazasPage: React.FC = () => {
   const [razas, setRazas] = useState<RazaDto[]>([]);
+  const [especies, setEspecies] = useState<EspecieCatalogItem[]>(ESPECIES_REFUGIO);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorRed, setErrorRed] = useState<string | null>(null);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
@@ -59,15 +65,12 @@ export const RazasPage: React.FC = () => {
     setIsLoading(true);
     setErrorRed(null);
     try {
-      if (idEspecie && idEspecie > 0) {
-        // Usa GET /api/Raza/especie/{idEspecie}
-        const data = await razaService.getByEspecie(idEspecie);
-        setRazas(data);
-      } else {
-        // Usa GET /api/Raza
-        const data = await razaService.getAll();
-        setRazas(data);
-      }
+      const [especiesData, razasData] = await Promise.all([
+        razaService.getEspecies(),
+        idEspecie && idEspecie > 0 ? razaService.getByEspecie(idEspecie) : razaService.getAll(),
+      ]);
+      setEspecies(especiesData);
+      setRazas(razasData);
     } catch (err: unknown) {
       setErrorRed(extractApiErrorMessage(err));
     } finally {
@@ -128,7 +131,7 @@ export const RazasPage: React.FC = () => {
   );
 
   const getNombreEspecie = (id: number) => {
-    const esp = ESPECIES_REFUGIO.find((e) => e.idEspecie === id);
+    const esp = especies.find((e) => e.idEspecie === id);
     return esp ? esp.nombre : `Especie #${id}`;
   };
 
@@ -175,7 +178,7 @@ export const RazasPage: React.FC = () => {
               }
               className="w-full rounded-lg bg-white border border-[#E5DFD7] px-3.5 py-2.5 text-base sm:text-sm text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-[#B84A27]/20 focus:border-[#B84A27] min-h-[44px]"
             >
-              {ESPECIES_REFUGIO.map((esp) => (
+              {especies.map((esp) => (
                 <option key={esp.idEspecie} value={esp.idEspecie}>
                   {esp.nombre}
                 </option>
@@ -294,7 +297,7 @@ export const RazasPage: React.FC = () => {
           >
             Todas las especies
           </button>
-          {ESPECIES_REFUGIO.map((esp) => (
+          {especies.map((esp) => (
             <button
               key={esp.idEspecie}
               type="button"

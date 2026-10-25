@@ -12,6 +12,8 @@ export interface EspecieRef {
   nombre: string;
 }
 
+export type EspecieCatalogItem = EspecieRef;
+
 export const ESPECIES_REFUGIO: EspecieRef[] = [
   { idEspecie: 1, nombre: 'Canino (Perro)' },
   { idEspecie: 2, nombre: 'Felino (Gato)' },

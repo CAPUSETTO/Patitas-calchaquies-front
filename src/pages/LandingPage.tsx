@@ -15,6 +15,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { Button, Input, Badge, ErrorAlert } from '../components/ui';
+import { extractApiErrorMessage } from '../api/axiosClient';
 import { animalService } from '../services/animalService';
 import { personaService } from '../services/personaService';
 import { adopcionService } from '../services/adopcionService';
@@ -167,23 +168,24 @@ export const LandingPage: React.FC = () => {
     setErrorFormulario(null);
 
     try {
-      let idPersonaAdoptante = 1;
-      try {
+      const dniSoloDigitos = dniLimpio.replace(/\D/g, '');
+      const existente = await personaService.getByDni(dniSoloDigitos || dniLimpio);
+
+      let idPersonaAdoptante: number;
+      if (existente && existente.idPersona) {
+        idPersonaAdoptante = existente.idPersona;
+      } else {
         const partes = nombreLimpio.split(' ');
         const nombrePila = partes[0] || nombreLimpio;
         const apellidoPila = partes.slice(1).join(' ') || localidadPostulante;
         const nuevaPersona = await personaService.crear({
           nombre: nombrePila,
           apellido: apellidoPila,
-          dni: dniLimpio,
-          telefono: telefonoLimpio,
-          direccion: localidadPostulante,
+          dni: dniSoloDigitos || dniLimpio,
+          telefono: telefonoLimpio.replace(/[^\d+]/g, '') || telefonoLimpio,
+          direccion: localidadPostulante || 'Valles Calchaquíes',
         });
-        if (nuevaPersona && nuevaPersona.idPersona) {
-          idPersonaAdoptante = nuevaPersona.idPersona;
-        }
-      } catch {
-        idPersonaAdoptante = Math.floor(Math.random() * 800) + 100;
+        idPersonaAdoptante = nuevaPersona.idPersona;
       }
 
       await adopcionService.crear(
@@ -211,9 +213,10 @@ export const LandingPage: React.FC = () => {
       setMotivoAdopcion('');
     } catch (err) {
       setErrorFormulario(
-        err instanceof Error
-          ? err.message
-          : 'No pudimos registrar tu solicitud en este momento. Intenta nuevamente.'
+        extractApiErrorMessage(
+          err,
+          'No pudimos registrar tu solicitud en este momento. Verifica tu DNI (7-8 dígitos) y teléfono.'
+        )
       );
     } finally {
       setEnviandoSolicitud(false);
