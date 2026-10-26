@@ -2,15 +2,30 @@ import React from 'react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  noPadding?: boolean;
+  interactive?: boolean;
 }
 
-/**
- * Card - Hoja estructural de fichero con marco de pizarra sólida (2px #1C1917).
- */
-export const Card: React.FC<CardProps> = ({ children, className = '', ...props }) => {
+export const Card: React.FC<CardProps> = ({
+  children,
+  noPadding = false,
+  interactive = false,
+  className = '',
+  ...props
+}) => {
   return (
     <div
-      className={`min-w-0 bg-white rounded-md border-2 border-[#1C1917] overflow-hidden ${className}`}
+      className={`
+        bg-white rounded-2xl border border-[#DCE6DF]
+        shadow-[0_12px_28px_-12px_rgba(15,41,30,0.06)]
+        ${noPadding ? '' : 'p-5 sm:p-6'}
+        ${
+          interactive
+            ? 'transition-all duration-200 hover:border-[#86EFAC] hover:shadow-[0_18px_36px_-12px_rgba(22,163,74,0.14)] cursor-pointer'
+            : ''
+        }
+        ${className}
+      `}
       {...props}
     >
       {children}
@@ -23,10 +38,7 @@ export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className = '',
   ...props
 }) => (
-  <div
-    className={`px-5 py-4 border-b-2 border-[#1C1917] bg-[#F3EFEA] flex items-center justify-between gap-3 ${className}`}
-    {...props}
-  >
+  <div className={`px-5 py-4 border-b border-[#DCE6DF] ${className}`} {...props}>
     {children}
   </div>
 );
@@ -37,21 +49,12 @@ export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({
   ...props
 }) => (
   <h3
-    className={`font-bold text-base sm:text-lg text-[#1C1917] truncate tracking-tight ${className}`}
+    className={`font-bold text-base text-[#0F291E] tracking-tight ${className}`}
+    style={{ fontFamily: 'var(--font-display)' }}
     {...props}
   >
     {children}
   </h3>
-);
-
-export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({
-  children,
-  className = '',
-  ...props
-}) => (
-  <p className={`text-xs sm:text-sm text-stone-700 ${className}`} {...props}>
-    {children}
-  </p>
 );
 
 export const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
@@ -69,10 +72,7 @@ export const CardFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className = '',
   ...props
 }) => (
-  <div
-    className={`px-5 py-3.5 bg-[#FAF8F5] border-t-2 border-[#1C1917] flex items-center justify-end gap-2.5 ${className}`}
-    {...props}
-  >
+  <div className={`px-5 py-4 bg-[#F7FAF8] border-t border-[#DCE6DF] ${className}`} {...props}>
     {children}
   </div>
 );

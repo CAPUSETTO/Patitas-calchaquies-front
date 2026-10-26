@@ -34,6 +34,27 @@ export const axiosClient = axios.create({
   },
 });
 
+const AUTH_STORAGE_KEY = 'patitas_auth_session_v1';
+
+/**
+ * Interceptor de solicitud para adjuntar automáticamente el token JWT (`Authorization: Bearer <token>`)
+ * emitido por `POST /api/Auth/login` cuando existe una sesión activa en `localStorage`.
+ */
+axiosClient.interceptors.request.use((config) => {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as { token?: string };
+      if (parsed?.token && !parsed.token.startsWith('demo-jwt-token-')) {
+        config.headers.Authorization = `Bearer ${parsed.token}`;
+      }
+    }
+  } catch {
+    // Ignorar errores de lectura de localStorage
+  }
+  return config;
+});
+
 /**
  * Extrae un mensaje legible para el usuario a partir de cualquier error de red o respuesta HTTP de la API C#.
  * Usa `unknown` en lugar de `any` para mantener seguridad de tipos estricta en TypeScript.

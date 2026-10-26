@@ -5,71 +5,82 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
   helperText?: string;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
-/**
- * Input - Campo de formulario técnico con borde firme de alto contraste (#1C1917)
- * y tipografía Atkinson Hyperlegible a 16px para máxima claridad en Android.
- */
-export const Input: React.FC<InputProps> = ({
-  label,
-  error,
-  helperText,
-  leftIcon,
-  id,
-  disabled,
-  className = '',
-  ...props
-}) => {
-  const generatedId = useId();
-  const inputId = id || generatedId;
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  (
+    { label, error, helperText, leftIcon, rightIcon, className = '', id, required, ...props },
+    ref
+  ) => {
+    const generatedId = useId();
+    const inputId = id || generatedId;
+    const errorId = `${inputId}-error`;
+    const helperId = `${inputId}-helper`;
 
-  return (
-    <div className="w-full space-y-1.5">
-      {label && (
-        <label
-          htmlFor={inputId}
-          className="block text-sm font-bold text-[#1C1917]"
-        >
-          {label}
-        </label>
-      )}
-
-      <div className="relative">
-        {leftIcon && (
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-600">
-            {leftIcon}
-          </div>
+    return (
+      <div className="w-full space-y-1.5">
+        {label && (
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-bold text-[#0F291E] tracking-tight"
+          >
+            {label}
+            {required && <span className="text-[#DC2626] ml-1">*</span>}
+          </label>
         )}
 
-        <input
-          id={inputId}
-          disabled={disabled}
-          className={`
-            w-full rounded-md bg-white border-2 px-3.5 py-2.5 text-base text-[#1C1917]
-            placeholder:text-stone-500 caret-[#B84A27] tab-snap
-            focus:outline-hidden focus:ring-2 focus:ring-[#B84A27]
-            disabled:bg-[#F3EFEA] disabled:text-stone-600 disabled:cursor-not-allowed
-            min-h-[44px]
-            ${leftIcon ? 'pl-10' : ''}
-            ${
-              error
-                ? 'border-red-700 focus:border-red-700'
-                : 'border-[#1C1917] focus:border-[#B84A27]'
-            }
-            ${className}
-          `}
-          {...props}
-        />
-      </div>
+        <div className="relative">
+          {leftIcon && (
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#527062] pointer-events-none flex items-center">
+              {leftIcon}
+            </span>
+          )}
 
-      {error ? (
-        <p className="text-xs text-red-700 font-bold" role="alert">
-          {error}
-        </p>
-      ) : helperText ? (
-        <p className="text-xs text-stone-600">{helperText}</p>
-      ) : null}
-    </div>
-  );
-};
+          <input
+            ref={ref}
+            id={inputId}
+            required={required}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? errorId : helperText ? helperId : undefined}
+            className={`
+              w-full min-h-[44px] py-2.5 rounded-xl border bg-white text-[#0F291E] text-base
+              placeholder:text-[#527062] transition-all duration-150
+              focus:outline-none focus:ring-2 focus:ring-[#16A34A]/25 focus:border-[#16A34A]
+              disabled:bg-[#EDF4F0] disabled:text-[#527062] disabled:cursor-not-allowed
+              ${leftIcon ? 'pl-10' : 'pl-3.5'}
+              ${rightIcon ? 'pr-10' : 'pr-3.5'}
+              ${
+                error
+                  ? 'border-[#DC2626] focus:ring-[#DC2626]/25 focus:border-[#DC2626]'
+                  : 'border-[#B8CCC0] hover:border-[#8FA89B]'
+              }
+              ${className}
+            `}
+            {...props}
+          />
+
+          {rightIcon && (
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#527062] flex items-center">
+              {rightIcon}
+            </span>
+          )}
+        </div>
+
+        {error && (
+          <p id={errorId} role="alert" className="text-xs font-bold text-[#DC2626] mt-1">
+            {error}
+          </p>
+        )}
+
+        {!error && helperText && (
+          <p id={helperId} className="text-xs text-[#2D4A3E] mt-1">
+            {helperText}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = 'Input';

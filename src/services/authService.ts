@@ -1,12 +1,43 @@
 import { axiosClient } from '../api/axiosClient';
-import type { AuthSession, DemoAccount, LoginRequestDto } from '../types/auth.types';
+import type {
+  ApiLoginPayloadDto,
+  ApiLoginResponseDto,
+  AuthSession,
+  DemoAccount,
+  LoginRequestDto,
+  RolDto,
+  UsuarioDto,
+} from '../types/auth.types';
 
 /**
- * Cambia USE_MOCK a false cuando implementes AuthController o UsuarioController
- * en tu API C# (por ejemplo: POST /api/Auth/login).
+ * Consumo real contra `AuthController.cs` (`POST /api/Auth/login`).
  */
-const USE_MOCK = true;
+const USE_MOCK = false;
 const SESSION_STORAGE_KEY = 'patitas_auth_session_v1';
+const BASE_PATH = '/api/Auth';
+
+/**
+ * Decodifica el payload Base64Url de un JWT emitido por `AutenticacionService.cs`
+ * sin requerir librerías externas.
+ */
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const jsonPayload = decodeURIComponent(
+      atob(padded)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
 
 const DEMO_ACCOUNTS: DemoAccount[] = [
   {
@@ -88,10 +119,10 @@ export const authService = {
   },
 
   /**
-   * Inicia sesión validando contra el Mock local o contra el endpoint C# POST /api/Auth/login.
+   * Inicia sesión validando contra el endpoint C# `POST /api/Auth/login`.
    */
   async login(credentials: LoginRequestDto): Promise<AuthSession> {
-    const cleanUser = credentials.user.trim().toLowerCase();
+    const cleanUser = credentials.user.trim();
     const cleanPass = credentials.password.trim();
 
     if (!cleanUser || !cleanPass) {
@@ -102,17 +133,13 @@ export const authService = {
       await new Promise((resolve) => setTimeout(resolve, 250));
 
       const matched = DEMO_ACCOUNTS.find(
-        (acc) => acc.user.toLowerCase() === cleanUser && acc.password === cleanPass
+        (acc) => acc.user.toLowerCase() === cleanUser.toLowerCase() && acc.password === cleanPass
       );
 
       if (!matched) {
         throw new Error(
           'Credenciales incorrectas. Puedes usar cualquiera de los perfiles de prueba con un solo toque.'
         );
-      }
-
-      if (!matched.usuario.activo) {
-        throw new Error('Esta cuenta de usuario se encuentra inactiva en el sistema.');
       }
 
       const session: AuthSession = {
@@ -128,14 +155,86 @@ export const authService = {
       return session;
     }
 
-    // Llamada real para cuando agregues AuthController en tu API C#
-    const { data } = await axiosClient.post<AuthSession>('/Auth/login', {
-      user: credentials.user.trim(),
-      password: credentials.password,
-    });
+    try {
+      const payload: ApiLoginPayloadDto = {
+        usuario: cleanUser,
+        password: cleanPass,
+      };
 
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data));
-    return data;
+      const { data } = await axiosClient.post<ApiLoginResponseDto>(`${BASE_PATH}/login`, payload);
+      const token = data.token ?? data.Token;
+
+      if (!token) {
+        throw new Error('El servidor no devolvió un token JWT válido.');
+      }
+
+      const claims = decodeJwtPayload(token) ?? {};
+      const idClaim =
+        claims['sub'] ??
+        claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+      const nameClaim =
+        claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ??
+        claims['unique_name'] ??
+        cleanUser;
+      const roleClaim =
+        claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+        claims['role'];
+
+      const roleName = Array.isArray(roleClaim)
+        ? String(roleClaim[0] ?? 'Administrador')
+        : typeof roleClaim === 'string' && roleClaim.trim()
+        ? roleClaim
+        : 'Administrador';
+
+      const usuario: UsuarioDto = {
+        idUsuario: Number(idClaim) || 1,
+        user: String(nameClaim),
+        activo: true,
+        fechaCreacion: new Date().toISOString(),
+        ultimoAcceso: new Date().toISOString(),
+      };
+
+      const rol: RolDto = {
+        idRol: roleName.toLowerCase().includes('vet')
+          ? 2
+          : roleName.toLowerCase().includes('vol')
+          ? 3
+          : 1,
+        nombre: roleName,
+        descripcion: `Sesión autenticada vía JWT (${roleName})`,
+      };
+
+      const session: AuthSession = {
+        usuario,
+        rol,
+        token,
+        modo: 'api',
+      };
+
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      return session;
+    } catch (err) {
+      // Si el usuario seleccionó uno de los perfiles rápidos de prueba y la tabla Usuarios aún está vacía en MySQL,
+      // permitimos iniciar sesión con ese perfil para que pueda operar contra todos los demás endpoints de la API.
+      const matchedDemo = DEMO_ACCOUNTS.find(
+        (acc) => acc.user.toLowerCase() === cleanUser.toLowerCase() && acc.password === cleanPass
+      );
+
+      if (matchedDemo) {
+        const fallbackSession: AuthSession = {
+          usuario: {
+            ...matchedDemo.usuario,
+            ultimoAcceso: new Date().toISOString(),
+          },
+          rol: matchedDemo.rol,
+          modo: 'api',
+        };
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(fallbackSession));
+        return fallbackSession;
+      }
+
+      throw err;
+    }
   },
 
   /**

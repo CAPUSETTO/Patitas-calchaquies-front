@@ -4,9 +4,19 @@ import {
   SolicitudAdopcionCrearDto,
   EstadoSolicitudAdopcion,
 } from '../types/adopcion.types';
+import { PersonaDto } from '../types/persona.types';
+import { AnimalDto } from '../types/animal.types';
 
-const BASE_PATH = '/api/Adopcion';
+const SOLICITUDES_PATH = '/api/SolicitudesAdopciones';
+const ADOPCIONES_PATH = '/api/Adopciones';
 const STORAGE_KEY = 'patitas_calchaquies_adopciones_v1';
+
+interface AdopcionApiDto {
+  idAdopcion: number;
+  idSolicitudAdopcion: number;
+  fecha: string;
+  observacion?: string | null;
+}
 
 const SEMILLA_ADOPCIONES: SolicitudAdopcionDto[] = [
   {
@@ -59,13 +69,47 @@ function guardarAlmacenados(lista: SolicitudAdopcionDto[]) {
   }
 }
 
-const USE_MOCK = true;
+const USE_MOCK = false;
+
+async function safeGetList<T>(url: string): Promise<T[]> {
+  try {
+    const res = await axiosClient.get<T[]>(url);
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+}
 
 export const adopcionService = {
   async getAll(): Promise<SolicitudAdopcionDto[]> {
     if (!USE_MOCK) {
-      const res = await axiosClient.get<SolicitudAdopcionDto[]>(BASE_PATH);
-      return res.data;
+      const [solicitudesRes, personas, animales, adopciones] = await Promise.all([
+        axiosClient.get<SolicitudAdopcionDto[]>(SOLICITUDES_PATH),
+        safeGetList<PersonaDto>('/api/Personas'),
+        safeGetList<AnimalDto>('/api/Animales'),
+        safeGetList<AdopcionApiDto>(ADOPCIONES_PATH),
+      ]);
+
+      const solicitudes = Array.isArray(solicitudesRes.data) ? solicitudesRes.data : [];
+
+      return solicitudes.map((sol) => {
+        const persona = personas.find((p) => p.idPersona === sol.idPersona);
+        const animal = animales.find((a) => a.idAnimal === sol.idAnimal);
+        const adopcion = adopciones.find((ad) => ad.idSolicitudAdopcion === sol.idSolicitudAdopcion);
+
+        return {
+          ...sol,
+          fecha: sol.fecha ? sol.fecha.split('T')[0] : sol.fecha,
+          personaNombre:
+            sol.personaNombre ||
+            (persona ? `${persona.nombre} ${persona.apellido}`.trim() : `Persona #${sol.idPersona}`),
+          personaDni: sol.personaDni || persona?.dni || undefined,
+          personaTelefono: sol.personaTelefono || persona?.telefono || undefined,
+          animalNombre: sol.animalNombre || animal?.nombre || `Animal #${sol.idAnimal}`,
+          animalCodigo: sol.animalCodigo || animal?.codigoIdentificacion,
+          idAdopcion: sol.idAdopcion ?? adopcion?.idAdopcion ?? null,
+        };
+      });
     }
     await new Promise((r) => setTimeout(r, 250));
     return obtenerAlmacenados();
@@ -82,8 +126,23 @@ export const adopcionService = {
     }
   ): Promise<SolicitudAdopcionDto> {
     if (!USE_MOCK) {
-      const res = await axiosClient.post<SolicitudAdopcionDto>(BASE_PATH, dto);
-      return res.data;
+      const payload = {
+        idPersona: Number(dto.idPersona),
+        idAnimal: Number(dto.idAnimal),
+        fecha: new Date().toISOString(),
+        estado: 'Pendiente' as EstadoSolicitudAdopcion,
+        observacion: dto.observacion?.trim() || null,
+      };
+      const res = await axiosClient.post<SolicitudAdopcionDto>(SOLICITUDES_PATH, payload);
+      return {
+        ...res.data,
+        fecha: res.data.fecha ? res.data.fecha.split('T')[0] : new Date().toISOString().split('T')[0],
+        personaNombre: extraInfo?.personaNombre || `Persona #${dto.idPersona}`,
+        personaDni: extraInfo?.personaDni,
+        personaTelefono: extraInfo?.personaTelefono,
+        animalNombre: extraInfo?.animalNombre || `Animal #${dto.idAnimal}`,
+        animalCodigo: extraInfo?.animalCodigo,
+      };
     }
     await new Promise((r) => setTimeout(r, 300));
     const lista = obtenerAlmacenados();
@@ -112,11 +171,58 @@ export const adopcionService = {
     nuevoEstado: EstadoSolicitudAdopcion
   ): Promise<SolicitudAdopcionDto> {
     if (!USE_MOCK) {
-      const res = await axiosClient.patch<SolicitudAdopcionDto>(
-        `${BASE_PATH}/${idSolicitud}/estado`,
-        { estado: nuevoEstado }
+      const actualRes = await axiosClient.get<SolicitudAdopcionDto>(
+        `${SOLICITUDES_PATH}/${idSolicitud}`
       );
-      return res.data;
+      const actual = actualRes.data;
+
+      const updatePayload = {
+        idSolicitudAdopcion: Number(idSolicitud),
+        idPersona: Number(actual.idPersona),
+        idAnimal: Number(actual.idAnimal),
+        fecha: actual.fecha.includes('T') ? actual.fecha : `${actual.fecha}T00:00:00`,
+        estado: nuevoEstado,
+        observacion: actual.observacion || null,
+      };
+
+      const res = await axiosClient.put<SolicitudAdopcionDto>(
+        `${SOLICITUDES_PATH}/${idSolicitud}`,
+        updatePayload
+      );
+
+      let idAdopcionCreada: number | null = null;
+
+      if (nuevoEstado === 'Concretada') {
+        try {
+          const adopcionRes = await axiosClient.post<AdopcionApiDto>(ADOPCIONES_PATH, {
+            idSolicitudAdopcion: Number(idSolicitud),
+            fecha: new Date().toISOString(),
+            observacion: actual.observacion || 'Adopción concretada.',
+          });
+          idAdopcionCreada = adopcionRes.data?.idAdopcion ?? null;
+        } catch {
+          // Si ya existía registro de adopción, continuar
+        }
+
+        try {
+          const animalRes = await axiosClient.get<AnimalDto>(`/api/Animales/${actual.idAnimal}`);
+          const animal = animalRes.data;
+          if (animal) {
+            await axiosClient.put(`/api/Animales/${actual.idAnimal}`, {
+              ...animal,
+              idAnimal: Number(actual.idAnimal),
+              idEstado: 3, // Adoptado
+            });
+          }
+        } catch {
+          // Ignorar si no se pudo actualizar el estado secundario del animal
+        }
+      }
+
+      return {
+        ...res.data,
+        idAdopcion: idAdopcionCreada,
+      };
     }
     await new Promise((r) => setTimeout(r, 250));
     const lista = obtenerAlmacenados();

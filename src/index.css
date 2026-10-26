@@ -1,141 +1,183 @@
 @import "tailwindcss";
 
-@theme {
-  --color-calchaqui-50: #fbf6f0;
-  --color-calchaqui-100: #f6ecdf;
-  --color-calchaqui-200: #ebd8c0;
-  --color-calchaqui-300: #dcbc97;
-  --color-calchaqui-400: #cb9b6d;
-  --color-calchaqui-500: #bf814e;
-  --color-calchaqui-600: #b84a27; /* Terracota primario */
-  --color-calchaqui-700: #9c3b1e;
-  --color-calchaqui-800: #7e2f17;
-  --color-calchaqui-900: #652614;
+@layer base {
+  :root {
+    --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, monospace;
 
-  --color-ground: #faf8f5;
-  --color-surface: #ffffff;
-  --color-panel: #f3efea;
-  --color-border-subtle: #1c1917;
+    /* Paleta Oficial Armonizada con el Logo:
+       Bosque Profundo (#0F291E), Verde Valles (#16A34A / #4DB83B), Rojo Protectora (#DC2626) y Blanco Salvia (#F7FAF8) */
+    --bg-canvas: #F7FAF8;
+    --bg-surface: #FFFFFF;
+    --bg-subtle: #EDF4F0;
+    --bg-forest: #0F291E;
+    --text-primary: #0F291E;
+    --text-secondary: #2D4A3E;
+    --text-muted: #527062;
+    --accent-green: #16A34A;
+    --accent-leaf: #4DB83B;
+    --accent-red: #DC2626;
+    --border-subtle: #DCE6DF;
+    --border-strong: #B8CCC0;
 
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    color-scheme: light;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    caret-color: var(--accent-green);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  ::selection {
+    background-color: #16A34A;
+    color: #FFFFFF;
+  }
 }
 
-:root {
-  color-scheme: light;
-  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Atkinson Hyperlegible', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Chivo Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.55;
-  background-color: #faf8f5;
-  color: #1c1917;
-  caret-color: #b84a27;
-}
-
-::selection {
-  background-color: #b84a27;
-  color: #ffffff;
-}
-
-/* Títulos firmes y ultra legibles con Archivo */
-h1, h2, h3, h4 {
-  font-family: var(--font-display);
-  text-wrap: balance;
-  letter-spacing: -0.02em;
-}
-
-p, li, dd, label, input, select, textarea {
-  font-family: var(--font-sans);
-}
-
-p {
-  text-wrap: pretty;
-}
-
-/* Enlaces y foco de teclado de alta visibilidad al sol */
-a {
-  text-underline-offset: 0.22em;
-  text-decoration-thickness: 1.5px;
-}
-
-:focus-visible {
-  outline: 2px solid #b84a27;
-  outline-offset: 2px;
-}
-
-/* Superficie de papel técnico con retícula sutil de archivo */
-.bg-field-grid {
-  background-color: #faf8f5;
-  background-image: radial-gradient(#d6cec2 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Hoja clínica con borde estructural firme de pizarra */
-.clinical-sheet {
-  background-color: #ffffff;
-  border: 2px solid #1c1917;
-}
-
-/* Banco de contadores sobre chasis pizarra (#1C1917) */
-.counter-chassis {
-  background-color: #1c1917;
-  color: #faf8f5;
-  border: 2px solid #1c1917;
-}
-
-.counter-tube {
-  background-color: #292524;
-  border: 1px solid #44403c;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Transición mecánica de 90ms estilo fichero (rw-manual-acetate-tab-board) */
-.tab-snap {
-  transition: background-color 90ms steps(2), color 90ms steps(2), border-color 90ms steps(2), transform 90ms steps(2);
-}
-
-/* Scrollbar integrada a la paleta Tierra y Pizarra */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f3efea;
-  border-left: 1px solid #d6cec2;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #57534e;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #b84a27;
-}
-
-/* Números tabulares alineados para DNI, teléfonos, fechas, raciones e IDs */
+/* Números tabulares para métricas, códigos, DNIs y raciones */
 .tabular-data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-/* Safe areas para notch y barra de navegación gestual de Android */
-.safe-bottom {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+/* Textura de puntos sutil con los dos tonos del logo (Verde Hoja + Rojo Protectora) */
+.bg-modern-dots {
+  background-color: #F7FAF8;
+  background-image: radial-gradient(rgba(22, 163, 74, 0.11) 1px, transparent 1px),
+    radial-gradient(rgba(220, 38, 38, 0.07) 1px, #F7FAF8 1px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
 }
 
-/* Ergonomía táctil para móviles */
-@media (pointer: coarse) {
-  button, a, input, select, textarea {
-    min-height: 44px;
+/* Superficie con elevación suave de capas cromáticas del logo */
+.surface-layered {
+  background-color: #FFFFFF;
+  border: 1px solid #DCE6DF;
+  box-shadow:
+    0 18px 38px -14px rgba(15, 41, 30, 0.08),
+    0 8px 20px -8px rgba(22, 163, 74, 0.07);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease;
+}
+
+.surface-layered-interactive:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: #86EFAC;
+  box-shadow:
+    0 22px 44px -14px rgba(22, 163, 74, 0.16),
+    0 10px 24px -10px rgba(220, 38, 38, 0.12);
+}
+
+/* Animación de entrada impulsada por Scroll (IntersectionObserver) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.985);
+  filter: blur(4px);
+  transition:
+    opacity 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 650ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+/* Desplazamiento de capas Riso con el Verde Hoja (#4DB83B) y Rojo Protectora (#DC2626) del logo */
+.riso-frame {
+  position: relative;
+  isolation: isolate;
+}
+
+.riso-frame::before,
+.riso-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease;
+  z-index: -1;
+}
+
+.riso-frame::before {
+  background-color: rgba(77, 184, 59, 0.22);
+  transform: translate3d(-7px, 7px, 0);
+}
+
+.riso-frame::after {
+  background-color: rgba(220, 38, 38, 0.18);
+  transform: translate3d(7px, -7px, 0);
+}
+
+.riso-frame:hover::before {
+  transform: translate3d(-11px, 11px, 0);
+  background-color: rgba(77, 184, 59, 0.30);
+}
+
+.riso-frame:hover::after {
+  transform: translate3d(11px, -11px, 0);
+  background-color: rgba(220, 38, 38, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .surface-layered,
+  .riso-frame::before,
+  .riso-frame::after {
+    transition: none;
   }
 }
 
-/* Evitar resaltado azul genérico de tap en Android WebView/Chrome */
-* {
-  -webkit-tap-highlight-color: transparent;
+/* Scrollbar limpia y moderna en tonos bosque */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EDF4F0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8FA89B;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2D4A3E;
 }

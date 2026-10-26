@@ -4,12 +4,67 @@ import {
   AnimalCrearDto,
   AnimalActualizarDto,
   SectorDto,
+  PredioDto,
   VeterinarioDto,
+  IngresoAnimalDto,
+  AlojamientoAnimalDto,
+  PlanAlimentacionDto,
+  EsterilizacionDto,
   ESTADOS_ANIMAL,
 } from '../types/animal.types';
+import { RazaDto } from '../types/raza.types';
 
-const BASE_PATH = '/api/Animal';
+const BASE_PATH = '/api/Animales';
 const STORAGE_KEY = 'patitas_calchaquies_animales_v2';
+
+interface FotoAnimalApiDto {
+  idFotoAnimal: number;
+  idAnimal: number;
+  ruta: string;
+  esPrincipal: boolean;
+  fecha: string;
+}
+
+interface EstadoAnimalApiDto {
+  idEstadoAnimal: number;
+  nombre: string;
+}
+
+interface SexoApiDto {
+  idSexo: number;
+  nombre: string;
+}
+
+interface EspecieApiDto {
+  idEspecie: number;
+  nombre: string;
+}
+
+interface SectorApiDto {
+  idSector: number;
+  nombre: string;
+  capacidad: number;
+  descripcion?: string | null;
+  idPredio: number;
+}
+
+interface AlojamientoApiDto {
+  idAlojamiento: number;
+  idAnimal: number;
+  idSector: number;
+  fechaIngreso: string;
+  fechaSalida?: string | null;
+  observacion?: string | null;
+}
+
+interface EsterilizacionApiDto {
+  idEsterilizacion: number;
+  idAnimal: number;
+  idVeterinario: number;
+  fecha: string;
+  tipo: string;
+  observacion?: string | null;
+}
 
 export const SECTORES_REFUGIO: SectorDto[] = [
   {
@@ -310,22 +365,192 @@ function guardarAlmacenados(lista: AnimalDto[]) {
   }
 }
 
-// Bandera para alternar entre Mock y API real cuando el usuario termine su AnimalController
-const USE_MOCK = true;
+// Consumo real contra AnimalesController.cs (`/api/Animales`) y controladores vinculados
+const USE_MOCK = false;
+
+let cachedSectores: SectorDto[] = SECTORES_REFUGIO;
+let cachedVeterinarios: VeterinarioDto[] = EQUIPO_VETERINARIO;
+let catalogosVerificados = false;
+
+async function safeGetList<T>(url: string): Promise<T[]> {
+  try {
+    const res = await axiosClient.get<T[]>(url);
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function asegurarCatalogosBase(): Promise<void> {
+  if (catalogosVerificados) return;
+  catalogosVerificados = true;
+
+  try {
+    const [especies, sexos, estados] = await Promise.all([
+      safeGetList<EspecieApiDto>('/api/Especies'),
+      safeGetList<SexoApiDto>('/api/Sexos'),
+      safeGetList<EstadoAnimalApiDto>('/api/EstadosAnimales'),
+    ]);
+
+    if (especies.length === 0) {
+      for (const nombre of ['Canino', 'Felino']) {
+        try {
+          await axiosClient.post('/api/Especies', { nombre });
+        } catch {
+          // Ignorar
+        }
+      }
+    }
+
+    if (sexos.length === 0) {
+      for (const nombre of ['Macho', 'Hembra']) {
+        try {
+          await axiosClient.post('/api/Sexos', { nombre });
+        } catch {
+          // Ignorar
+        }
+      }
+    }
+
+    if (estados.length === 0) {
+      for (const nombre of ['Disponible', 'En Tratamiento', 'Adoptado', 'En Tránsito']) {
+        try {
+          await axiosClient.post('/api/EstadosAnimales', { nombre });
+        } catch {
+          // Ignorar
+        }
+      }
+    }
+  } catch {
+    // Continuar incluso si algún endpoint de catálogo no responde
+  }
+}
+
+async function enriquecerAnimales(animalesBase: AnimalDto[]): Promise<AnimalDto[]> {
+  if (animalesBase.length === 0) return [];
+
+  const [
+    razas,
+    estados,
+    fotos,
+    ingresos,
+    alojamientos,
+    sectoresApi,
+    prediosApi,
+    planes,
+    esterilizaciones,
+    veterinariosApi,
+  ] = await Promise.all([
+    safeGetList<RazaDto>('/api/Raza'),
+    safeGetList<EstadoAnimalApiDto>('/api/EstadosAnimales'),
+    safeGetList<FotoAnimalApiDto>('/api/FotosAnimales'),
+    safeGetList<IngresoAnimalDto>('/api/IngresosAnimales'),
+    safeGetList<AlojamientoApiDto>('/api/AlojamientosAnimales'),
+    safeGetList<SectorApiDto>('/api/Sectores'),
+    safeGetList<PredioDto>('/api/Predios'),
+    safeGetList<PlanAlimentacionDto>('/api/PlanesAlimentacion'),
+    safeGetList<EsterilizacionApiDto>('/api/Esterilizaciones'),
+    safeGetList<VeterinarioDto>('/api/Veterinarios'),
+  ]);
+
+  if (sectoresApi.length > 0) {
+    cachedSectores = sectoresApi.map((s) => {
+      const predio = prediosApi.find((p) => p.idPredio === s.idPredio);
+      return {
+        ...s,
+        predioNombre: predio?.nombre || 'Predio Central Ruta 40 · Cafayate',
+      };
+    });
+  }
+
+  if (veterinariosApi.length > 0) {
+    cachedVeterinarios = veterinariosApi;
+  }
+
+  return animalesBase.map((animal) => {
+    const raza = razas.find((r) => r.idRaza === animal.idRaza);
+    const estadoApi = estados.find((e) => e.idEstadoAnimal === animal.idEstado);
+    const estadoFallback = ESTADOS_ANIMAL.find((e) => e.idEstado === (animal.idEstado ?? 1));
+    const fotosAnimal = fotos.filter((f) => f.idAnimal === animal.idAnimal);
+    const foto = fotosAnimal.find((f) => f.esPrincipal) ?? fotosAnimal[0];
+    const ingreso = ingresos.find((i) => i.idAnimal === animal.idAnimal);
+    const alojApi = alojamientos.find((a) => a.idAnimal === animal.idAnimal);
+    const plan = planes.find((p) => p.idAnimal === animal.idAnimal);
+    const estApi = esterilizaciones.find((e) => e.idAnimal === animal.idAnimal);
+
+    let alojamiento: AlojamientoAnimalDto | undefined = animal.alojamiento;
+    if (alojApi) {
+      const sector =
+        cachedSectores.find((s) => s.idSector === alojApi.idSector) ?? SECTORES_REFUGIO[0];
+      alojamiento = {
+        ...alojApi,
+        sectorNombre: sector.nombre,
+        predioNombre: sector.predioNombre,
+      };
+    }
+
+    let esterilizacion: EsterilizacionDto | undefined = animal.esterilizacion;
+    if (estApi) {
+      const vet =
+        cachedVeterinarios.find((v) => v.idVeterinario === estApi.idVeterinario) ??
+        EQUIPO_VETERINARIO[0];
+      esterilizacion = {
+        ...estApi,
+        veterinarioNombre: `${vet.nombre} ${vet.apellido}`.trim(),
+        veterinarioMatricula: vet.matricula,
+      };
+    }
+
+    const defaultPhoto =
+      animal.idEspecie === 2
+        ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80'
+        : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+
+    return {
+      ...animal,
+      fechaIngreso: animal.fechaIngreso ? animal.fechaIngreso.split('T')[0] : animal.fechaIngreso,
+      razaNombre: animal.razaNombre || raza?.nombre || undefined,
+      estadoNombre:
+        animal.estadoNombre ||
+        estadoFallback?.nombre ||
+        estadoApi?.nombre ||
+        'Disponible para Adopción',
+      fotoUrl: animal.fotoUrl || foto?.ruta || defaultPhoto,
+      observaciones:
+        animal.observaciones ||
+        ingreso?.observacion ||
+        alojApi?.observacion ||
+        undefined,
+      ingreso,
+      alojamiento,
+      planAlimentacion: plan ?? animal.planAlimentacion,
+      esterilizacion,
+    };
+  });
+}
 
 export const animalService = {
   getSectores(): SectorDto[] {
-    return SECTORES_REFUGIO;
+    return cachedSectores;
   },
 
   getVeterinarios(): VeterinarioDto[] {
-    return EQUIPO_VETERINARIO;
+    return cachedVeterinarios;
+  },
+
+  async fetchVeterinarios(): Promise<VeterinarioDto[]> {
+    const lista = await safeGetList<VeterinarioDto>('/api/Veterinarios');
+    if (lista.length > 0) {
+      cachedVeterinarios = lista;
+      return lista;
+    }
+    return cachedVeterinarios;
   },
 
   async getAll(): Promise<AnimalDto[]> {
     if (!USE_MOCK) {
       const res = await axiosClient.get<AnimalDto[]>(BASE_PATH);
-      return res.data;
+      return await enriquecerAnimales(res.data);
     }
     await new Promise((r) => setTimeout(r, 200));
     return obtenerAlmacenados();
@@ -334,7 +559,8 @@ export const animalService = {
   async getById(id: number): Promise<AnimalDto> {
     if (!USE_MOCK) {
       const res = await axiosClient.get<AnimalDto>(`${BASE_PATH}/${id}`);
-      return res.data;
+      const [enriquecido] = await enriquecerAnimales([res.data]);
+      return enriquecido;
     }
     await new Promise((r) => setTimeout(r, 150));
     const lista = obtenerAlmacenados();
@@ -345,9 +571,66 @@ export const animalService = {
 
   async crear(dto: AnimalCrearDto): Promise<AnimalDto> {
     if (!USE_MOCK) {
-      const res = await axiosClient.post<AnimalDto>(BASE_PATH, dto);
-      return res.data;
+      await asegurarCatalogosBase();
+
+      const fechaIso = dto.fechaIngreso.includes('T')
+        ? dto.fechaIngreso
+        : `${dto.fechaIngreso}T00:00:00`;
+
+      const apiPayload = {
+        nombre: dto.nombre.trim(),
+        codigoIdentificacion: dto.codigoIdentificacion.trim().toUpperCase(),
+        fechaIngreso: fechaIso,
+        castrado: Boolean(dto.castrado),
+        idEspecie: Number(dto.idEspecie),
+        idRaza: dto.idRaza && Number(dto.idRaza) > 0 ? Number(dto.idRaza) : null,
+        idSexo: dto.idSexo ? Number(dto.idSexo) : 1,
+        idEstado: dto.idEstado ? Number(dto.idEstado) : 1,
+      };
+
+      const res = await axiosClient.post<AnimalDto>(BASE_PATH, apiPayload);
+      const creado = res.data;
+
+      // Persistir foto en FotosAnimalesController si fue provista
+      if (dto.fotoUrl?.trim() && creado?.idAnimal) {
+        try {
+          await axiosClient.post('/api/FotosAnimales', {
+            idAnimal: creado.idAnimal,
+            ruta: dto.fotoUrl.trim().slice(0, 255),
+            esPrincipal: true,
+            fecha: fechaIso,
+          });
+        } catch {
+          // No bloquear el alta principal si la tabla secundaria falla
+        }
+      }
+
+      // Persistir ingreso/observaciones en IngresosAnimalesController si fue provisto
+      if (dto.observaciones?.trim() && creado?.idAnimal) {
+        try {
+          await axiosClient.post('/api/IngresosAnimales', {
+            idAnimal: creado.idAnimal,
+            fecha: fechaIso,
+            motivo: 'Ingreso administrativo',
+            tipoIngreso: 'Registro Directo',
+            lugarOrigen: 'Valles Calchaquíes',
+            observacion: dto.observaciones.trim(),
+          });
+        } catch {
+          // No bloquear el alta principal si la tabla secundaria falla
+        }
+      }
+
+      const [enriquecido] = await enriquecerAnimales([
+        {
+          ...creado,
+          fotoUrl: dto.fotoUrl?.trim() || undefined,
+          observaciones: dto.observaciones?.trim() || undefined,
+        },
+      ]);
+      return enriquecido;
     }
+
     await new Promise((r) => setTimeout(r, 250));
     const lista = obtenerAlmacenados();
     const nuevoId = lista.length > 0 ? Math.max(...lista.map((x) => x.idAnimal)) + 1 : 1;
@@ -379,9 +662,92 @@ export const animalService = {
 
   async actualizar(id: number, dto: AnimalActualizarDto): Promise<AnimalDto> {
     if (!USE_MOCK) {
-      const res = await axiosClient.put<AnimalDto>(`${BASE_PATH}/${id}`, dto);
-      return res.data;
+      await asegurarCatalogosBase();
+
+      const fechaIso = dto.fechaIngreso.includes('T')
+        ? dto.fechaIngreso
+        : `${dto.fechaIngreso}T00:00:00`;
+
+      const apiPayload = {
+        idAnimal: Number(id),
+        nombre: dto.nombre.trim(),
+        codigoIdentificacion: dto.codigoIdentificacion.trim().toUpperCase(),
+        fechaIngreso: fechaIso,
+        castrado: Boolean(dto.castrado),
+        idEspecie: Number(dto.idEspecie),
+        idRaza: dto.idRaza && Number(dto.idRaza) > 0 ? Number(dto.idRaza) : null,
+        idSexo: dto.idSexo ? Number(dto.idSexo) : 1,
+        idEstado: dto.idEstado ? Number(dto.idEstado) : 1,
+      };
+
+      const res = await axiosClient.put<AnimalDto>(`${BASE_PATH}/${id}`, apiPayload);
+
+      // Sincronizar foto si fue provista
+      if (dto.fotoUrl?.trim()) {
+        try {
+          const fotos = await safeGetList<FotoAnimalApiDto>('/api/FotosAnimales');
+          const existenteFoto = fotos.find((f) => f.idAnimal === Number(id));
+          if (existenteFoto) {
+            await axiosClient.put(`/api/FotosAnimales/${existenteFoto.idFotoAnimal}`, {
+              idFotoAnimal: existenteFoto.idFotoAnimal,
+              idAnimal: Number(id),
+              ruta: dto.fotoUrl.trim().slice(0, 255),
+              esPrincipal: true,
+              fecha: fechaIso,
+            });
+          } else {
+            await axiosClient.post('/api/FotosAnimales', {
+              idAnimal: Number(id),
+              ruta: dto.fotoUrl.trim().slice(0, 255),
+              esPrincipal: true,
+              fecha: fechaIso,
+            });
+          }
+        } catch {
+          // Ignorar error secundario
+        }
+      }
+
+      // Sincronizar observaciones en IngresosAnimales si fueron provistas
+      if (dto.observaciones !== undefined) {
+        try {
+          const ingresos = await safeGetList<IngresoAnimalDto>('/api/IngresosAnimales');
+          const existenteIngreso = ingresos.find((i) => i.idAnimal === Number(id));
+          if (existenteIngreso) {
+            await axiosClient.put(`/api/IngresosAnimales/${existenteIngreso.idIngresoAnimal}`, {
+              idIngresoAnimal: existenteIngreso.idIngresoAnimal,
+              idAnimal: Number(id),
+              fecha: existenteIngreso.fecha || fechaIso,
+              motivo: (existenteIngreso.motivo || 'Ingreso administrativo').slice(0, 50),
+              tipoIngreso: (existenteIngreso.tipoIngreso || 'Registro Directo').slice(0, 50),
+              lugarOrigen: (existenteIngreso.lugarOrigen || 'Valles Calchaquíes').slice(0, 50),
+              observacion: dto.observaciones?.trim() || null,
+            });
+          } else if (dto.observaciones?.trim()) {
+            await axiosClient.post('/api/IngresosAnimales', {
+              idAnimal: Number(id),
+              fecha: fechaIso,
+              motivo: 'Ingreso administrativo',
+              tipoIngreso: 'Registro Directo',
+              lugarOrigen: 'Valles Calchaquíes',
+              observacion: dto.observaciones.trim(),
+            });
+          }
+        } catch {
+          // Ignorar error secundario
+        }
+      }
+
+      const [enriquecido] = await enriquecerAnimales([
+        {
+          ...res.data,
+          fotoUrl: dto.fotoUrl?.trim() || undefined,
+          observaciones: dto.observaciones?.trim() || undefined,
+        },
+      ]);
+      return enriquecido;
     }
+
     await new Promise((r) => setTimeout(r, 250));
     const lista = obtenerAlmacenados();
     const index = lista.findIndex((x) => x.idAnimal === id);

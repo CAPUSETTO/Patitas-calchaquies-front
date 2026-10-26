@@ -25,7 +25,7 @@ import {
   AtencionVeterinariaDto,
   AtencionVeterinariaCrearDto,
 } from '../types/atencion.types';
-import { AnimalDto } from '../types/animal.types';
+import { AnimalDto, VeterinarioDto } from '../types/animal.types';
 import { VacunaDto } from '../types/vacuna.types';
 import { MedicamentoDto } from '../types/medicamento.types';
 import { extractApiErrorMessage } from '../api/axiosClient';
@@ -33,6 +33,7 @@ import { extractApiErrorMessage } from '../api/axiosClient';
 export const AtencionesPage: React.FC = () => {
   const [atenciones, setAtenciones] = useState<AtencionVeterinariaDto[]>([]);
   const [animales, setAnimales] = useState<AnimalDto[]>([]);
+  const [veterinarios, setVeterinarios] = useState<VeterinarioDto[]>([]);
   const [vacunas, setVacunas] = useState<VacunaDto[]>([]);
   const [medicamentos, setMedicamentos] = useState<MedicamentoDto[]>([]);
 
@@ -44,6 +45,7 @@ export const AtencionesPage: React.FC = () => {
   const [mostrarModalCrear, setMostrarModalCrear] = useState<boolean>(false);
   const [nuevaAtencion, setNuevaAtencion] = useState<AtencionVeterinariaCrearDto>({
     idAnimal: 0,
+    idVeterinario: 0,
     motivo: '',
     diagnostico: '',
     veterinarioNombre: '',
@@ -64,14 +66,17 @@ export const AtencionesPage: React.FC = () => {
     setIsLoading(true);
     setErrorRed(null);
     try {
-      const [dataAtenciones, dataAnimales, dataVacunas, dataMedicamentos] = await Promise.all([
-        atencionService.getAll(),
-        animalService.getAll().catch(() => []),
-        vacunaService.getAll().catch(() => []),
-        medicamentoService.getAll().catch(() => []),
-      ]);
+      const [dataAtenciones, dataAnimales, dataVeterinarios, dataVacunas, dataMedicamentos] =
+        await Promise.all([
+          atencionService.getAll(),
+          animalService.getAll().catch(() => []),
+          animalService.fetchVeterinarios().catch(() => animalService.getVeterinarios()),
+          vacunaService.getAll().catch(() => []),
+          medicamentoService.getAll().catch(() => []),
+        ]);
       setAtenciones(dataAtenciones);
       setAnimales(dataAnimales);
+      setVeterinarios(dataVeterinarios);
       setVacunas(dataVacunas);
       setMedicamentos(dataMedicamentos);
     } catch (err: unknown) {
@@ -328,14 +333,37 @@ export const AtencionesPage: React.FC = () => {
                 required
               />
 
-              <Input
-                label="Veterinario Interviniente (Opcional)"
-                placeholder="Ej. Dr. Martín Paz"
-                value={nuevaAtencion.veterinarioNombre || ''}
-                onChange={(e) =>
-                  setNuevaAtencion({ ...nuevaAtencion, veterinarioNombre: e.target.value })
-                }
-              />
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="atencion-veterinario"
+                  className="block text-xs sm:text-sm font-semibold text-stone-800"
+                >
+                  Veterinario Interviniente (Catálogo api/Veterinarios)
+                </label>
+                <select
+                  id="atencion-veterinario"
+                  value={nuevaAtencion.idVeterinario || ''}
+                  onChange={(e) => {
+                    const idVet = e.target.value ? Number(e.target.value) : 0;
+                    const vetObj = veterinarios.find((v) => v.idVeterinario === idVet);
+                    setNuevaAtencion({
+                      ...nuevaAtencion,
+                      idVeterinario: idVet,
+                      veterinarioNombre: vetObj
+                        ? `${vetObj.nombre} ${vetObj.apellido} (${vetObj.matricula})`
+                        : '',
+                    });
+                  }}
+                  className="w-full rounded-lg bg-white border border-[#E5DFD7] px-3 py-2.5 text-sm text-stone-900 min-h-[44px]"
+                >
+                  <option value="">Guardia Veterinaria por defecto</option>
+                  {veterinarios.map((v) => (
+                    <option key={v.idVeterinario} value={v.idVeterinario}>
+                      {v.nombre} {v.apellido} · Mat. {v.matricula}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="space-y-1.5">
                 <label htmlFor="atencion-diagnostico" className="block text-xs sm:text-sm font-semibold text-stone-800">

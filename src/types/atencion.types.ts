@@ -10,6 +10,7 @@ export interface AtencionVeterinariaDto {
   idAtencionVeterinaria: number;
   idAnimal: number;
   animalNombre?: string;
+  idVeterinario?: number;
   fecha: string;
   motivo: string;
   diagnostico?: string;
@@ -23,6 +24,7 @@ export interface AtencionVeterinariaDto {
 
 export interface AtencionVeterinariaCrearDto {
   idAnimal: number;
+  idVeterinario?: number;
   motivo: string;
   diagnostico?: string;
   veterinarioNombre?: string;

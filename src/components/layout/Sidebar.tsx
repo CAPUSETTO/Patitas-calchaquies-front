@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { PawPrint, Wifi, ExternalLink, LogOut, ShieldCheck } from 'lucide-react';
+import { Wifi, ExternalLink, LogOut, ShieldCheck } from 'lucide-react';
 import { MAIN_NAV_ITEMS } from './navigationConfig';
 import { authService } from '../../services/authService';
 
 /**
- * Sidebar - Panel de navegación lateral para escritorio en el Dashboard Administrativo (/admin).
+ * Sidebar - Panel de navegación lateral en Bosque Profundo (#0F291E)
+ * con el Emblema Oficial de la Asociación Protectora de Animales.
  */
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -21,37 +22,41 @@ export const Sidebar: React.FC = () => {
   return (
     <aside
       aria-label="Barra lateral principal"
-      className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-[#F2ECE1] border-r-2 border-[#1C1917] z-30"
+      className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-[#0F291E] text-white border-r border-[#1E4634] z-30"
     >
-      {/* Cabecera Chasis Pizarra */}
-      <div className="flex items-center justify-between gap-3 px-4 h-16 border-b-2 border-[#1C1917] bg-[#1C1917] text-[#FAF8F5] shrink-0">
+      {/* Cabecera con el Logo Oficial en Medallón Blanco */}
+      <div className="flex items-center justify-between gap-3 px-4 h-20 border-b border-[#1E4634] shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 bg-[#B84A27] text-white border-2 border-[#FAF8F5] flex items-center justify-center shrink-0">
-            <PawPrint className="w-5 h-5 stroke-[2.2]" />
+          <div className="w-12 h-12 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-sm">
+            <img
+              src="/logo-patitas.jpg"
+              alt="Logo Asociación Protectora de Animales"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div className="min-w-0">
             <h1
-              className="font-black text-sm text-[#FAF8F5] uppercase truncate tracking-tight"
+              className="font-black text-sm text-white truncate tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               Patitas Calchaquíes
             </h1>
-            <p className="font-mono text-[11px] text-[#D6CEC2] truncate">
-              GUARDIA OPERATIVA
+            <p className="font-mono text-[10px] text-[#86EFAC] truncate">
+              PROTECTORA DE ANIMALES
             </p>
           </div>
         </div>
       </div>
 
-      {/* Enlace directo al Fichero Público */}
-      <div className="p-3 border-b-2 border-[#1C1917] bg-[#FAF8F5]">
+      {/* Enlace directo a la Landing Pública */}
+      <div className="p-3 border-b border-[#1E4634]">
         <Link
           to="/"
-          className="flex items-center justify-between gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#1C1917] bg-white hover:bg-[#F2ECE1] border-2 border-[#1C1917] transition-colors"
+          className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#D1FAE5] bg-[#143325] hover:bg-[#1E4634] transition-colors"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          <span>Fichero Público</span>
-          <ExternalLink className="w-3.5 h-3.5 text-[#B84A27] shrink-0" />
+          <span>Ver Landing Pública</span>
+          <ExternalLink className="w-3.5 h-3.5 text-[#4ADE80] shrink-0" />
         </Link>
       </div>
 
@@ -59,10 +64,10 @@ export const Sidebar: React.FC = () => {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         <div>
           <div
-            className="px-2 pb-2 text-xs font-black uppercase tracking-wider text-[#44403C]"
+            className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#86EFAC]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Operaciones Centrales
+            Gestión del Refugio
           </div>
           <div className="space-y-1">
             {itemsPrincipales.map((item) => {
@@ -73,11 +78,11 @@ export const Sidebar: React.FC = () => {
                   to={item.path}
                   end={item.path === '/admin'}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-2.5 text-sm font-bold transition-colors
+                    flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all
                     ${
                       isActive
-                        ? 'bg-[#1C1917] text-[#FAF8F5]'
-                        : 'text-[#1C1917] hover:bg-[#FAF8F5]'
+                        ? 'bg-[#16A34A] text-white shadow-[0_6px_16px_-4px_rgba(22,163,74,0.45)]'
+                        : 'text-[#D1FAE5] hover:bg-[#143325] hover:text-white'
                     }
                   `}
                 >
@@ -91,10 +96,10 @@ export const Sidebar: React.FC = () => {
 
         <div>
           <div
-            className="px-2 pb-2 text-xs font-black uppercase tracking-wider text-[#44403C]"
+            className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#86EFAC]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Catálogos MySQL (C#)
+            Catálogos API C# (MySQL)
           </div>
           <div className="space-y-1">
             {itemsCatalogos.map((item) => {
@@ -104,11 +109,11 @@ export const Sidebar: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-2.5 text-sm font-bold transition-colors
+                    flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all
                     ${
                       isActive
-                        ? 'bg-[#1C1917] text-[#FAF8F5]'
-                        : 'text-[#1C1917] hover:bg-[#FAF8F5]'
+                        ? 'bg-[#16A34A] text-white shadow-[0_6px_16px_-4px_rgba(22,163,74,0.45)]'
+                        : 'text-[#D1FAE5] hover:bg-[#143325] hover:text-white'
                     }
                   `}
                 >
@@ -122,24 +127,23 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Pie de Sidebar: Usuario activo + Estado API + Cerrar sesión */}
-      <div className="p-4 border-t-2 border-[#1C1917] bg-[#FAF8F5] shrink-0 space-y-3">
+      <div className="p-4 border-t border-[#1E4634] bg-[#0F291E] shrink-0 space-y-3">
         {session && (
-          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#D6CEC2]">
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#1E4634]">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917] truncate">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2D6A4F] shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-white truncate">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#4ADE80] shrink-0" />
                 <span className="font-mono truncate">{session.usuario.user}</span>
               </div>
-              <p className="text-[11px] font-bold text-[#44403C] uppercase truncate mt-0.5">
-                ROL: {session.rol.nombre}
+              <p className="text-[11px] text-[#A7F3D0] truncate mt-0.5">
+                Rol: {session.rol.nombre}
               </p>
             </div>
             <button
               type="button"
               onClick={handleLogout}
               title="Cerrar sesión"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold uppercase text-[#1C1917] hover:text-white hover:bg-[#991B1B] border-2 border-[#1C1917] transition-colors cursor-pointer shrink-0"
-              style={{ fontFamily: 'var(--font-display)' }}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#D1FAE5] hover:text-white hover:bg-[#DC2626] bg-[#143325] transition-colors cursor-pointer shrink-0"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Salir</span>
@@ -147,10 +151,10 @@ export const Sidebar: React.FC = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#1C1917] tabular-data">
-          <span className="inline-flex h-2.5 w-2.5 bg-[#2D6A4F] border border-[#1C1917]"></span>
-          <Wifi className="w-3.5 h-3.5 text-[#1C1917]" />
-          <span className="truncate">API C# · PUERTO 5227</span>
+        <div className="flex items-center gap-2 text-xs font-mono text-[#A7F3D0] tabular-data">
+          <span className="inline-flex h-2 w-2 rounded-full bg-[#4ADE80]"></span>
+          <Wifi className="w-3.5 h-3.5 text-[#4ADE80]" />
+          <span className="truncate">API C# · Puerto 5227</span>
         </div>
       </div>
     </aside>

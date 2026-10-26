@@ -30,6 +30,30 @@ export interface LoginRequestDto {
   password: string;
 }
 
+/**
+ * Payload exacto esperado por AuthController.cs (`POST /api/Auth/login`).
+ */
+export interface ApiLoginPayloadDto {
+  usuario: string;
+  password: string;
+}
+
+/**
+ * Respuesta de `POST /api/Auth/login` (`Ok(new { Token = token })`).
+ */
+export interface ApiLoginResponseDto {
+  token?: string;
+  Token?: string;
+}
+
+export interface UsuarioCrearDto {
+  user: string;
+  passwordHash: string;
+  activo: boolean;
+  fechaCreacion: string;
+  ultimoAcceso?: string | null;
+}
+
 export interface AuthSession {
   usuario: UsuarioDto;
   rol: RolDto;
