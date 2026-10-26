@@ -229,7 +229,7 @@ export const RazasPage: React.FC = () => {
             Catálogo de Razas
           </h2>
           <p className="text-sm text-stone-600 mt-0.5">
-            Clasificación genealógica por especie para las fichas de animales (api/Raza).
+            Clasificación genealógica por especie para las fichas de animales.
           </p>
         </div>
 

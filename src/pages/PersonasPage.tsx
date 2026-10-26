@@ -826,10 +826,10 @@ export const PersonasPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Estado de Error de Red / API */}
+      {/* Estado de Error de Red */}
       {errorRed && (
         <ErrorAlert
-          title="Error al conectar con PersonasController (/api/Personas)"
+          title="Error al cargar el padrón de personas"
           message={errorRed}
           onRetry={() => void cargarPersonas()}
         />
