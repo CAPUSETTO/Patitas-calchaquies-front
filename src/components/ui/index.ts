@@ -6,3 +6,4 @@ export * from './Skeleton';
 export * from './ErrorAlert';
 export * from './EmptyState';
 export * from './ConfirmModal';
+export * from './ImageFrameUploader';

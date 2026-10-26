@@ -434,7 +434,7 @@ export const LandingPage: React.FC = () => {
                       <img
                         src={expedienteActivo.fotoUrl}
                         alt={`Retrato de ${expedienteActivo.nombre}`}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[#527062]">
@@ -715,7 +715,7 @@ export const LandingPage: React.FC = () => {
                       <img
                         src={expedienteActivo.fotoUrl}
                         alt={`Fotografía de ${expedienteActivo.nombre}`}
-                        className="w-full h-full object-cover max-h-[320px] md:max-h-none"
+                        className="w-full h-full object-cover object-center max-h-[320px] md:max-h-none"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[#527062]">
