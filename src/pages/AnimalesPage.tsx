@@ -22,6 +22,7 @@ import {
   ErrorAlert,
   EmptyState,
   ConfirmModal,
+  ImageFrameUploader,
 } from '../components/ui';
 import { animalService } from '../services/animalService';
 import { razaService } from '../services/razaService';
@@ -389,12 +390,10 @@ export const AnimalesPage: React.FC = () => {
             </label>
           </div>
 
-          <Input
-            label="URL de Foto (Opcional)"
-            placeholder="https://..."
+          <ImageFrameUploader
             value={formData.fotoUrl || ''}
-            onChange={(e) => setFormData({ ...formData, fotoUrl: e.target.value })}
-            helperText="Pega el enlace de una foto para la ficha"
+            suggestedName={formData.codigoIdentificacion || formData.nombre || 'animal'}
+            onChange={(rutaRelativa) => setFormData((prev) => ({ ...prev, fotoUrl: rutaRelativa }))}
           />
 
           <div className="space-y-1.5">
@@ -481,7 +480,7 @@ export const AnimalesPage: React.FC = () => {
               <img
                 src={animalSeleccionado.fotoUrl}
                 alt={animalSeleccionado.nombre}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
               />
               <div className="absolute top-3 right-3">
                 {getEstadoBadge(animalSeleccionado.idEstado)}
@@ -786,7 +785,7 @@ export const AnimalesPage: React.FC = () => {
                     <img
                       src={animal.fotoUrl}
                       alt={animal.nombre}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-center"
                       loading="lazy"
                     />
                   ) : (

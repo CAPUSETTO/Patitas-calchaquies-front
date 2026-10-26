@@ -1,0 +1,2 @@
+# Carpeta en la raíz donde se guardan las fotos de los animales ingresados al refugio.
+# La base de datos almacena únicamente la ruta relativa: /imagenes-animales/<nombre-archivo>.jpg
