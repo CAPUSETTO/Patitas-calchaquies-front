@@ -132,7 +132,19 @@ function patitasLocalImageStorage(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), patitasLocalImageStorage()],
   server: {
-    host: true, // Expone el servidor en 0.0.0.0 para acceso desde teléfono Android en red local Wi-Fi
+    host: true, // Expone el servidor en 0.0.0.0 para acceso desde teléfono en red local Wi-Fi
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5227',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+  preview: {
+    host: true,
     port: 5173,
     strictPort: true,
     proxy: {
