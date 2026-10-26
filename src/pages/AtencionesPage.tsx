@@ -338,7 +338,7 @@ export const AtencionesPage: React.FC = () => {
                   htmlFor="atencion-veterinario"
                   className="block text-xs sm:text-sm font-semibold text-stone-800"
                 >
-                  Veterinario Interviniente (Catálogo api/Veterinarios)
+                  Veterinario Interviniente
                 </label>
                 <select
                   id="atencion-veterinario"
@@ -381,10 +381,10 @@ export const AtencionesPage: React.FC = () => {
                 />
               </div>
 
-              {/* Conexión con catálogo real de Vacunas */}
+              {/* Selección de Vacuna */}
               <div className="space-y-1.5">
                 <label htmlFor="atencion-vacuna" className="block text-xs sm:text-sm font-semibold text-stone-800">
-                  Vacuna Aplicada (Catálogo api/Vacuna)
+                  Vacuna Aplicada
                 </label>
                 <select
                   id="atencion-vacuna"
@@ -406,10 +406,10 @@ export const AtencionesPage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Conexión con catálogo real de Medicamentos */}
+              {/* Selección de Medicamento */}
               <div className="space-y-1.5">
                 <label htmlFor="atencion-medicamento" className="block text-xs sm:text-sm font-semibold text-stone-800">
-                  Medicamento Prescripto (Catálogo api/Medicamento)
+                  Medicamento Prescripto
                 </label>
                 <select
                   id="atencion-medicamento"

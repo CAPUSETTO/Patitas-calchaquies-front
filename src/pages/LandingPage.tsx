@@ -364,7 +364,7 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <p className="font-bold text-sm text-white">Rescate en Valles</p>
                   <p className="text-xs text-[#A7F3D0]">
-                    Trazado en <code className="font-mono">Ingreso_Animal.cs</code>
+                    Registro formal y trazabilidad de origen
                   </p>
                 </div>
 
@@ -379,7 +379,7 @@ export const LandingPage: React.FC = () => {
                     {listosCount} Listos · {enTratamientoCount} en Guardia
                   </p>
                   <p className="text-xs text-[#A7F3D0]">
-                    Avalado en <code className="font-mono">Esterilizacion.cs</code>
+                    Supervisión y control veterinario
                   </p>
                 </div>
 
@@ -772,12 +772,12 @@ export const LandingPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Cuadrícula continua de las 4 entidades C# (Sin tarjetas anidadas) */}
+                {/* Cuadrícula continua de las 4 etapas clínicas (Sin tarjetas anidadas) */}
                 <dl className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-[#DCE6DF] bg-[#F7FAF8]">
-                  {/* Celda 1: Ingreso_Animal.cs */}
+                  {/* Celda 1: Origen y Rescate */}
                   <div className="p-5 space-y-1.5 border-b border-[#DCE6DF]">
                     <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#DC2626]">
-                      <span>1. Origen y Rescate (Ingreso_Animal.cs)</span>
+                      <span>1. Origen y Rescate</span>
                       <MapPin className="w-4 h-4 shrink-0" />
                     </dt>
                     <dd className="text-sm sm:text-base font-bold text-[#0F291E]">
@@ -792,10 +792,10 @@ export const LandingPage: React.FC = () => {
                     </dd>
                   </div>
 
-                  {/* Celda 2: Alojamiento_Animal.cs */}
+                  {/* Celda 2: Sector y Plaza */}
                   <div className="p-5 space-y-1.5 border-b border-[#DCE6DF]">
                     <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#16A34A]">
-                      <span>2. Sector y Plaza (Alojamiento_Animal.cs)</span>
+                      <span>2. Sector y Plaza</span>
                       <Compass className="w-4 h-4 shrink-0" />
                     </dt>
                     <dd className="text-sm sm:text-base font-bold text-[#0F291E]">
@@ -810,10 +810,10 @@ export const LandingPage: React.FC = () => {
                     </dd>
                   </div>
 
-                  {/* Celda 3: PlanAlimentacion.cs */}
+                  {/* Celda 3: Nutrición Diaria */}
                   <div className="p-5 space-y-1.5">
                     <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#16A34A]">
-                      <span>3. Nutrición Diaria (PlanAlimentacion.cs)</span>
+                      <span>3. Nutrición Diaria</span>
                       <Utensils className="w-4 h-4 shrink-0" />
                     </dt>
                     <dd className="text-sm sm:text-base font-bold text-[#0F291E]">
@@ -829,10 +829,10 @@ export const LandingPage: React.FC = () => {
                     </dd>
                   </div>
 
-                  {/* Celda 4: Esterilizacion.cs */}
+                  {/* Celda 4: Sanidad y Castración */}
                   <div className="p-5 space-y-1.5">
                     <dt className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#0F291E]">
-                      <span>4. Sanidad y Castración (Esterilizacion.cs)</span>
+                      <span>4. Sanidad y Castración</span>
                       <Stethoscope className="w-4 h-4 shrink-0 text-[#16A34A]" />
                     </dt>
                     <dd className="text-sm sm:text-base font-bold text-[#0F291E]">
@@ -899,8 +899,7 @@ export const LandingPage: React.FC = () => {
                   Estación Final · Solicitud de Adopción Responsable
                 </h2>
                 <p className="text-sm sm:text-base text-[#D1FAE5]">
-                  Tu postulación se registra directamente en la bandeja operativa de{' '}
-                  <code className="font-mono text-xs text-[#4ADE80]">SolicitudAdopcion.cs</code> para
+                  Tu postulación se envía directamente al equipo de adopciones del refugio para
                   coordinar la visita.
                 </p>
               </div>
@@ -1064,9 +1063,7 @@ export const LandingPage: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                   <p className="text-xs sm:text-sm text-[#2D4A3E]">
-                    Al enviar, tus datos se vinculan con{' '}
-                    <code className="font-mono font-bold text-[#0F291E]">Persona.cs</code> y{' '}
-                    <code className="font-mono font-bold text-[#0F291E]">SolicitudAdopcion.cs</code>.
+                    Al enviar, tus datos quedan registrados para la evaluación del equipo del refugio.
                   </p>
                   <Button
                     type="submit"

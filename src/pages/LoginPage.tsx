@@ -129,10 +129,7 @@ export const LoginPage: React.FC = () => {
                   Ingreso al Dashboard de Trabajadores
                 </h1>
                 <p className="text-sm sm:text-base text-[#2D4A3E] leading-relaxed">
-                  Acceso exclusivo para coordinación, equipo veterinario y guardia voluntaria.
-                  Modelado sobre{' '}
-                  <code className="font-mono font-bold text-xs text-[#16A34A]">Usuario.cs</code> y{' '}
-                  <code className="font-mono font-bold text-xs text-[#16A34A]">Rol.cs</code>.
+                  Acceso exclusivo para coordinación, equipo veterinario y guardia voluntaria del refugio.
                 </p>
               </div>
             </div>
@@ -146,7 +143,7 @@ export const LoginPage: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <Input
-                label="Usuario Operativo (Usuario.User)"
+                label="Usuario Operativo"
                 value={user}
                 onChange={(e) => setUser(e.target.value)}
                 placeholder="Ej. admin.valles"

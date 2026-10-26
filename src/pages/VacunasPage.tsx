@@ -264,7 +264,7 @@ export const VacunasPage: React.FC = () => {
             Catálogo de Vacunas
           </h2>
           <p className="text-sm text-stone-600 mt-0.5">
-            Gestión del plan de vacunación e inmunización del refugio (api/Vacuna).
+            Gestión del plan de vacunación e inmunización del refugio.
           </p>
         </div>
 

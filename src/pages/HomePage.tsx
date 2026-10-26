@@ -78,7 +78,7 @@ export const HomePage: React.FC = () => {
       detalle: 'Fichas de rescate, sectores, nutrición y estados',
       icono: Dog,
       contador: `${animales.length} fichas`,
-      origen: 'api/Animales',
+      origen: 'Fichas Activas',
       esReal: true,
     },
     {
@@ -87,7 +87,7 @@ export const HomePage: React.FC = () => {
       detalle: 'Aprobación de postulaciones web y contratos',
       icono: HeartHandshake,
       contador: `${solicitudesPendientes.length} pendientes`,
-      origen: 'api/SolicitudesAdopciones',
+      origen: 'Trámites Web',
       esReal: true,
     },
     {
@@ -96,7 +96,7 @@ export const HomePage: React.FC = () => {
       detalle: 'Consultas, diagnósticos, vacunas y tratamientos',
       icono: Stethoscope,
       contador: `${totalAtenciones} registros`,
-      origen: 'api/AtencionesVeterinarias',
+      origen: 'Historial Sanitario',
       esReal: true,
     },
     {
@@ -105,25 +105,25 @@ export const HomePage: React.FC = () => {
       detalle: 'Adoptantes, rescatistas y búsqueda por DNI/Nombre',
       icono: Users,
       contador: `${totalPersonas} activos`,
-      origen: 'api/Personas',
+      origen: 'Padrón General',
       esReal: true,
     },
     {
       nombre: 'Catálogo de Vacunas',
       ruta: '/admin/vacunas',
-      detalle: 'Plan de inmunización conectado con MySQL',
+      detalle: 'Plan de inmunización y stock preventivo',
       icono: Syringe,
-      contador: 'CRUD Activo',
-      origen: 'api/Vacuna',
+      contador: 'Activo',
+      origen: 'Plan Sanitario',
       esReal: true,
     },
     {
       nombre: 'Catálogo de Medicamentos',
       ruta: '/admin/medicamentos',
-      detalle: 'Vademécum veterinario conectado con MySQL',
+      detalle: 'Vademécum veterinario y tratamientos',
       icono: Pill,
-      contador: 'CRUD Activo',
-      origen: 'api/Medicamento',
+      contador: 'Activo',
+      origen: 'Farmacia',
       esReal: true,
     },
     {
@@ -131,8 +131,8 @@ export const HomePage: React.FC = () => {
       ruta: '/admin/razas',
       detalle: 'Clasificación canina y felina por especie',
       icono: Sparkles,
-      contador: 'Filtro Especie',
-      origen: 'api/Raza',
+      contador: 'Activo',
+      origen: 'Clasificación',
       esReal: true,
     },
   ];
@@ -310,9 +310,7 @@ export const HomePage: React.FC = () => {
                   <span>Capacidad y Alojamiento por Sector</span>
                 </h3>
                 <p className="text-xs sm:text-sm text-[#2D4A3E]">
-                  Distribución física según <code className="font-mono font-bold">Predio.cs</code>,{' '}
-                  <code className="font-mono font-bold">Sector.cs</code> y{' '}
-                  <code className="font-mono font-bold">Alojamiento_Animal.cs</code>.
+                  Distribución física por predios, sectores y plazas del refugio.
                 </p>
               </div>
             </div>
@@ -376,10 +374,10 @@ export const HomePage: React.FC = () => {
               className="font-black text-base text-[#0F291E] tracking-tight"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Módulos y Endpoints del Sistema
+              Módulos del Sistema
             </h3>
             <p className="text-xs sm:text-sm text-[#2D4A3E] mt-0.5">
-              Acceso directo a las 7 áreas operativas y estado de conexión con tu backend C#.
+              Acceso directo a las 7 áreas de gestión operativa del refugio.
             </p>
           </div>
 

@@ -99,7 +99,7 @@ export const Sidebar: React.FC = () => {
             className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-[#86EFAC]"
             style={{ fontFamily: 'var(--font-display)' }}
           >
-            Catálogos API C# (MySQL)
+            Catálogos del Sistema
           </div>
           <div className="space-y-1">
             {itemsCatalogos.map((item) => {
@@ -154,7 +154,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center gap-2 text-xs font-mono text-[#A7F3D0] tabular-data">
           <span className="inline-flex h-2 w-2 rounded-full bg-[#4ADE80]"></span>
           <Wifi className="w-3.5 h-3.5 text-[#4ADE80]" />
-          <span className="truncate">API C# · Puerto 5227</span>
+          <span className="truncate">Servidor Conectado</span>
         </div>
       </div>
     </aside>

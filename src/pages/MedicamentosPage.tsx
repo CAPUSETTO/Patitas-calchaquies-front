@@ -264,7 +264,7 @@ export const MedicamentosPage: React.FC = () => {
             Catálogo de Medicamentos
           </h2>
           <p className="text-sm text-stone-600 mt-0.5">
-            Fármacos e insumos terapéuticos para tratamientos veterinarios (api/Medicamento).
+            Fármacos e insumos terapéuticos para tratamientos veterinarios.
           </p>
         </div>
 
