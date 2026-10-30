@@ -13,6 +13,7 @@ import {
   Building2,
   MapPin,
   ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   Button,
@@ -30,6 +31,7 @@ import type { SolicitudAdopcionDto } from '../types/adopcion.types';
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const session = authService.getCurrentSession();
+  const esAdmin = authService.esAdministrador(session);
   const sectores = animalService.getSectores();
 
   const [animales, setAnimales] = useState<AnimalDto[]>([]);
@@ -135,6 +137,15 @@ export const HomePage: React.FC = () => {
       origen: 'Clasificación',
       esReal: true,
     },
+    {
+      nombre: 'Equipo, Veterinarios y Admins',
+      ruta: '/admin/usuarios',
+      detalle: 'Alta de veterinarios, administradores y control de permisos',
+      icono: ShieldCheck,
+      contador: esAdmin ? 'Habilitado' : 'Lectura',
+      origen: 'Seguridad',
+      esReal: true,
+    },
   ];
 
   return (
@@ -174,6 +185,16 @@ export const HomePage: React.FC = () => {
               <span>Landing Pública</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#4ADE80]" />
             </Link>
+            {esAdmin && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate('/admin/usuarios')}
+                leftIcon={<ShieldCheck className="w-4 h-4" />}
+              >
+                Agregar Veterinario / Admin
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"

@@ -8,6 +8,7 @@ import {
   Syringe,
   Pill,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -76,6 +77,13 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     path: '/admin/razas',
     icon: Sparkles,
     description: 'Razas por especie (api/Raza)',
+    seccion: 'catalogo',
+  },
+  {
+    name: 'Equipo y Accesos',
+    path: '/admin/usuarios',
+    icon: ShieldCheck,
+    description: 'Veterinarios, administradores y permisos',
     seccion: 'catalogo',
   },
 ];

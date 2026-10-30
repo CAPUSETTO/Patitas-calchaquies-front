@@ -372,6 +372,30 @@ let cachedSectores: SectorDto[] = SECTORES_REFUGIO;
 let cachedVeterinarios: VeterinarioDto[] = EQUIPO_VETERINARIO;
 let catalogosVerificados = false;
 
+function combinarVeterinariosConLocales(base: VeterinarioDto[]): VeterinarioDto[] {
+  try {
+    const raw = localStorage.getItem('patitas_veterinarios_custom_v1');
+    if (!raw) return base;
+    const locales = JSON.parse(raw) as VeterinarioDto[];
+    if (!Array.isArray(locales) || locales.length === 0) return base;
+
+    const resultado = [...base];
+    for (const loc of locales) {
+      const existe = resultado.some(
+        (v) =>
+          v.idVeterinario === loc.idVeterinario ||
+          v.matricula.toLowerCase() === loc.matricula.toLowerCase()
+      );
+      if (!existe) {
+        resultado.push(loc);
+      }
+    }
+    return resultado;
+  } catch {
+    return base;
+  }
+}
+
 async function safeGetList<T>(url: string): Promise<T[]> {
   try {
     const res = await axiosClient.get<T[]>(url);
@@ -535,15 +559,16 @@ export const animalService = {
   },
 
   getVeterinarios(): VeterinarioDto[] {
-    return cachedVeterinarios;
+    return combinarVeterinariosConLocales(cachedVeterinarios);
   },
 
   async fetchVeterinarios(): Promise<VeterinarioDto[]> {
     const lista = await safeGetList<VeterinarioDto>('/api/Veterinarios');
     if (lista.length > 0) {
-      cachedVeterinarios = lista;
-      return lista;
+      cachedVeterinarios = combinarVeterinariosConLocales(lista);
+      return cachedVeterinarios;
     }
+    cachedVeterinarios = combinarVeterinariosConLocales(cachedVeterinarios);
     return cachedVeterinarios;
   },
 

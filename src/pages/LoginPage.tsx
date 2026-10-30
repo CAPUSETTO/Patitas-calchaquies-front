@@ -218,7 +218,7 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="divide-y divide-[#DCE6DF] flex-1">
+            <div className="divide-y divide-[#DCE6DF] flex-1 max-h-[540px] overflow-y-auto">
               {demoAccounts.map((cuenta) => {
                 const seleccionado = user.toLowerCase() === cuenta.user.toLowerCase();
                 return (
@@ -243,7 +243,8 @@ export const LoginPage: React.FC = () => {
                             {cuenta.etiqueta}
                           </h3>
                           <p className="text-xs text-[#2D4A3E] font-mono font-bold truncate tabular-data">
-                            {cuenta.user} · Rol #{cuenta.rol.idRol} ({cuenta.rol.nombre})
+                            @{cuenta.user} · {cuenta.rol.nombre}
+                            {cuenta.veterinario ? ` (${cuenta.veterinario.matricula})` : ''}
                           </p>
                         </div>
                       </div>
