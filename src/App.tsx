@@ -12,6 +12,7 @@ import { PersonasPage } from './pages/PersonasPage';
 import { VacunasPage } from './pages/VacunasPage';
 import { MedicamentosPage } from './pages/MedicamentosPage';
 import { RazasPage } from './pages/RazasPage';
+import { UsuariosPage } from './pages/UsuariosPage';
 
 /**
  * App - Router Principal (SPA) dividido en dos superficies Impeccable:
@@ -37,6 +38,7 @@ export const App: React.FC = () => {
             <Route path="vacunas" element={<VacunasPage />} />
             <Route path="medicamentos" element={<MedicamentosPage />} />
             <Route path="razas" element={<RazasPage />} />
+            <Route path="usuarios" element={<UsuariosPage />} />
           </Route>
         </Route>
 
@@ -48,6 +50,7 @@ export const App: React.FC = () => {
         <Route path="/vacunas" element={<Navigate to="/admin/vacunas" replace />} />
         <Route path="/medicamentos" element={<Navigate to="/admin/medicamentos" replace />} />
         <Route path="/razas" element={<Navigate to="/admin/razas" replace />} />
+        <Route path="/usuarios" element={<Navigate to="/admin/usuarios" replace />} />
 
         {/* Fallback general */}
         <Route path="*" element={<Navigate to="/" replace />} />
